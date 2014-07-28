@@ -1,5 +1,5 @@
 CHAPTERS=Chapter-*/Chapter-*.tex  Appendix-*/Appendix-*.tex
-NAME=YourName-thesis
+NAME=thesis
 AUX=$(NAME).aux front.aux Chapter-*/*.aux Appendix-*/*.aux optional.aux
 INTERMEDIATES=$(NAME).bbl $(NAME).blg $(NAME).lof $(NAME).lot \
               $(NAME).log $(NAME).toc 
@@ -11,6 +11,7 @@ $(NAME).pdf : $(NAME).tex $(NAME).bib front.tex $(CHAPTERS) ncsuthesis.cls optio
 	pdflatex $(NAME)
 
 clean :
-	rm $(AUX) $(INTERMEDIATES)
+	rm $(AUX) $(INTERMEDIATES) $(NAME).pdf
 
-
+view :
+	evince $(NAME).pdf &

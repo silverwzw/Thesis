@@ -1,8 +1,10 @@
 \chapter{Snapshot}
-\label{chap-tour}
-    One of the major features of the Kabi File System is writable copy-on-write snapshot. Snapshots are designed to be one of the first class citizen of the Kabi File System. Even the “current” status of the file system is also treated as a writable snapshot. This lightweight snapshot system focuses on reducing the storage space occupied by a snapshot.
+\label{chap:snapshot}
+    One of the major features of the Kabi File System is writable copy-on-write snapshot. Snapshot nodes are designed to be one of the basic component of the Kabi File System. The “current” status of the file system is also treated as a writable snapshot. This lightweight snapshot system focuses on reducing the storage space occupied by a snapshot.
 
-    In our snapshot system, most snapshots do not keep a copy of the entire file system but instead they will log the changes since the last snapshot. In this way the snapshot system can rebuilt the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on the one file node or one directory node since the last snapshot.
+    In a snapshot system, most snapshots do not keep a copy of the entire file system but instead they will log the changes since the last snapshot. In this way the snapshot system can rebuild the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on the one file node or one directory node since the last snapshot.
+
+    (ADD LONG TERM IMPACT)
 
 \begin{figure}[hbtp]
 \centering
@@ -31,7 +33,7 @@
 \label{fig:snap_tree_example}
 \end{figure}
 
-    At initial status, the file system contains a default writeable snapshot node (node \#0 in \fref{fig:snap_tree_example}) representing the current status of the file system. This unique snapshot called the root snapshot is the only snapshot node that does not reference other snapshot. For initial status, writes to the file system goes directly into the root snapshot.
+    At initial status, the file system contains a default writeable snapshot node (node \#0 in \fref{fig:snap_tree_example}) representing the current status of the file system. This unique snapshot called the root snapshot is the only snapshot node that does not reference other snapshot. For initial status, writes to the file system go directly into the root snapshot.
     
     After a snapshot is taken, a new snapshot node (node \#1) is created referring to the root snapshot node. Subsequent write operations will not only write data into the root snapshot but also submit patches to all snapshot connected to root snapshot, so as to reflect the difference between snapshot node \#1 and its referencing node \#0.
 
@@ -48,10 +50,11 @@
 
 \section{Nodes}
 
-    As mentioned in Chapter 3, there are two types of snapshot node in this file system, namely the root snapshot node and the non-root snapshot node.
-The root snapshot is unique in the file system. It is the root of the up-tree and does not reference any other snapshot. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to root snapshot node is intuitive and faster than any other snapshot, so root snapshot is recommended to be used to represent the most frequently accessed snapshot or the current status of the file system.
+    As mentioned in previous section, there are two types of snapshot node in this file system, namely the root snapshot node and the non-root snapshot node.
 
-    On the other hand, a non-root snapshot does not have their own root directory but keeps a reference to another snapshot node and a list of patch nodes which represent the difference between this non-root snapshot and the referenced snapshot. Reading a non-root snapshot will first read the corresponding content in referenced snapshot and then lookup the patch list to find out if the content is marked as changed in this snapshot. To write the non-root snapshot upload the changed nodes into the database and pack their id into a patch node and submit the patch. Be aware that not all non-root snapshot is writable, once the non-root snapshot is referenced by some other snapshot nodes, it becomes immutable.
+    The root snapshot is unique in the file system. It is the root of the up-tree (CITE HERE OR EXPLAIN) and does not reference any other snapshot. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to root snapshot node is intuitive and faster than any other snapshot, so root snapshot is recommended to be used to represent the most frequently accessed snapshot or the current status of the file system.
+
+    On the other hand, a non-root snapshot does not have their own root directory but keeps a reference to another snapshot node and a list of patch nodes which represent the difference between this non-root snapshot and the referenced snapshot. Reading a non-root snapshot will first read the corresponding content in referenced snapshot and then lookup the patch list to find out if the content is marked as changed in this snapshot. To write the non-root snapshot upload the changed nodes into the database and pack their id into a patch node and submit the patch. Be aware that not all non-root snapshots are writable, once the non-root snapshot is referenced by some other snapshot nodes, it becomes immutable.
 
     \fref{fig:root_and_nonroot} shows a root snapshot node (right) and a non-root snapshot (left).
     
