@@ -16,20 +16,20 @@
 
 	\item Take a snaphot of the file.
 	
-	\item Insertion or overwrite random number of byte to the file at random offset. The offset parameter will be uniformly distributed between $0$ and $F$. The number of bytes being overwritten will be uniformly distributed from $1$ to largest possible value (i.e., until the end of the file).
+	\item Insert or overwrite random number of bytes to the file at random offset. The offset variable will be uniformly distributed between $0$ and $F$. The number of bytes being overwritten will be uniformly distributed from $1$ to largest possible value (i.e., until the end of the file).
 
 	\item Take another snapshot and calculate the total space occupied by the second snapshot.
 
-	\item Repeat above steps for 10,000 times to collect data (average value).
+	\item Repeat above steps for 10,000 times to collect data (the average value).
 \end{enumerate}
 
-    \tref{tab:sample_result} shows two sample result of such experiment. The first three columns in the table are the parameters of the experiment. The later four columns are the data gathered from the experiment. For example, the column labeled ``overwrite, classic'' means correspnding write operation is an overwrite and the algrithm used by snapshot system is classic Copy-on-Write.
+    \tref{tab:sample_result} shows two sample results of such experiment. The first three columns in the table are the variables of the experiment. The later four columns are the data gathered from the experiment. For example, the column labeled ``overwrite, classic'' means correspnding write operation is an overwrite and the algrithm used by snapshot system is classic copy-on-write.
 
-    The first row in \tref{tab:sample_result} represents a experiment on a Kabi file system with 128 byte block size. The target file is a 12,608-byte file with 3\% sections truncated. The result shows that on average it takes a classic Copy-on-write snapshot system 3,288 bytes to take a snapshot after an overwrite operation. It takes 103 bytes more for a Kabi File System to take a snapshot under the same condition. When it comes to insertion, on average it only takes the Kabi File System 3,256 bytes to take a snapshot after an insertion while it costs almost 2 times more space for a classic copy-on-write snapshot system to do so.
+    The first row in \tref{tab:sample_result} represents an experiment on a Kabi file system with a 128-byte block size. The target file is a 12,608-byte file with 3\% of all sections truncated. The result shows that on average it takes a classic copy-on-write snapshot system 3,288 bytes to take a snapshot after an overwrite operation. It takes 103 bytes more for a Kabi File System to take a snapshot under the same condition. When it comes to insertion, on average it only takes the Kabi File System 3,256 bytes to take a snapshot after an insertion while it costs almost 2 times more space for a classic copy-on-write snapshot system to do so.
 
-    The result is intuitive. Because there's not much duplicated data in the overwrite scenario, storing the SHA hash, rolling checksum are overheads that makes the performance of Kabi File System a little lower than the classic approach. But in the insertion scenrio, lots of duplicated data can be found. The rsync algorithm is able to find the duplications but the classic approach is not able to do anything to that. So the Kabi File System gets a better perfromance this time.
+    This result is not difficult to explain. Because there's not much duplicated data in the overwrite scenario, the SHA hashs and rolling checksums become overheads. This makes the performance of Kabi File System a little lower than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach can not do anything. So the Kabi File System have a better perfromance  when it comes to insertion.
     
-    The second row in \tref{tab:sample_result} represents another experiment with file size equal to 126,080 bytes. It is obvious that when the file size becomes larger, the number space used to take a snapshot also become larger. But this makes comparasion between two experiments of different file size not so obvious. We introduce the normalized table, \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
+    The second row in \tref{tab:sample_result} represents another experiment different from the first one in file size. The file size in the second row equals to 126,080 bytes. It is obvious that when the file size becomes larger, the number space used to take a snapshot also become larger. However, this makes the comparasion between two experiments of different file size not so obvious.Therefore We introduce the normalized data as shown in \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
 
 \begin{lscape} 
 \begin{table}
@@ -38,7 +38,7 @@
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
-\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\multicolumn{3}{|c|}{experiment variables} & \multicolumn{4}{c|}{write operation and algorithm used} \\
 \hline
 block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
 \hline
@@ -56,7 +56,7 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
-\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\multicolumn{3}{|c|}{experiment variables} & \multicolumn{4}{c|}{write operation and algorithm used} \\
 \hline
 block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
 \hline
@@ -69,15 +69,22 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 \end{table}
 \end{lscape}
 
-\subsection{Block Size and File Size}
+\section{Block Size and File Size}
+
+    The block size and the file size also influence the efficiency of a snapshot system. A high file-size-to-block-size ratio means fine-grained blocks. A classic copy-on-write snapshot will get better efficiency if it is a fine-grained target file. Consider the extreme case where the file-size-to-block-size ratio is 1. Then the file contains exactly one block. So any change means a complete rewrite to the file by classic copy-on-write strategy. Column 4 and 6 in \tref{tab:fb_ratio} reflects this influence where high file-size-to-block-size retio improves the efficiency of classic copy-on-write system.
+
+    However, column 7 shows that there's no obvious relationship between file-size-to-block-size ratio and efficiency when doing an insertion in Kabi File System. One reason for this could be, the kabi file system can tuncate block into smaller section freely as shown in \fref{fig:buffer}. Therefore the Kabi File System can have fine-grained sections even though the block size is large. 
+    
+    The data in column 5 reflects the fact that an increase in file-size-to-block-size ratio will result in an improvement in efficiency. The reason could be that the proportion of the metadata reduces when the file size increases. For example, an overwrite operation can result in at most two additional section added to the file node. This means an extra 56-byte metadata. Compared to a 704 byte file, such overhead is huge. But to a 14,008-byte file this overhead can be omitted.
+
 \begin{lscape} 
 \begin{table}
-\caption{Sample result of the experiment}
-\label{tab:sample_result}
+\caption{File Size to Block Size ratio}
+\label{tab:fb_ratio}
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
-\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\multicolumn{3}{|c|}{experiment variables} & \multicolumn{4}{c|}{write operation and algorithm used} \\
 \hline
 block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
 \hline
@@ -97,15 +104,23 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 \end{center}
 \end{table}
 \end{lscape}
-\subsection{Truncate Ratio}
+
+\section{Truncate Ratio}
+
+    The rsync algorithm searches duplication in local buffer and remote sections. It uses the rolling checksum of the section to find the duplication. But a truncated section does not have a valid rolling checksum thus it cannot be benifited from the rsync algorithm. We can infer that the more truncated sections we have, the less efficient the snapshot system will be.
+
+    \tref{tab:truncate_ratio} supports this inference. It shows the relationship between the efficiency and tuncated sections. Since a classic copy-on-write snapshot system does not have ``truncated section'', it is clear from the table that they are not infulenced by this experiment variable. On the other hand, the tuncated sections significantly influence the efficiency of Kabi File System. It makes rsync algorithm less powerful. When all sections are truncated, the rsync algorithm no longer provide any extra efficiency in insert operation.
+
+    In this experiment, we explicilty set the size of tuncated section to be half of the block size. That means for a Kabi File System with a 128-byte block size, the overhead (28 bytes) in metadata is almost half of the data contains in truncated section. In other words, for every 2 byte stored in tuncated section, there is 1 extra byte cost in metadata. Since the increase in truncated-to-untruncated ratio implies more truncated section which is less efficient, this explains the significent decrease in efficiency in column 5 of \tref{tab:truncate_ratio}.
+
 \begin{lscape} 
 \begin{table}
-\caption{Sample result of the experiment}
-\label{tab:sample_result}
+\caption{Truncate Ratio}
+\label{tab:truncate_ratio}
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
-\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\multicolumn{3}{|c|}{experiment variables} & \multicolumn{4}{c|}{write operation and algorithm used} \\
 \hline
 block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
 \hline
@@ -133,4 +148,9 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 \end{center}
 \end{table}
 \end{lscape}
-\subsection{Conclusion}
+
+\section{Conclusion}
+
+    In this Chapter, we showed the effects of three importent factors that affect the snapshot efficiency. The three factors are the block size, the file-size-to-block-size ratio and the proportion of truncated sections.
+
+    Generally, in Kabi snapshot system an increase in block size or an increase in file-size-to-block-size ratio will make the overheads of metadata more efficient. The proportion of truncated sections is the most important factor among the three factors and an increase in this proportion will significently decrease the efficiency of the snapshot system in Kabi File System.

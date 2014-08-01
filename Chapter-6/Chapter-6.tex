@@ -1,3 +1,12 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
+
+    In this thesis, we present the design of a new distributed file system with snapshot capability. We also build a proof of concept implementation of such design using MongoDB, FUSE and other techniques. We designed and implemented a new copy-on-write snapshot system and try to improve its efficiency in many ways. We evaluates the snapshot system by testing variables that affects the efficiency of the snapshot and we also come up with some explaination of how these factors affects the efficiency.
+
+    We believe the major contribution of this thesis are the design of the proposed file system, the design of the snapshot subsystem and the evaluation of the snapshot subsystem.
+
 \section{Future work}
+
+     We already know that the proportion of truncated section affects the efficiency significently. It is possible that a large block size will increase the proportion of truncated section in long run. Further more, We may also want to find out the optimal block size when given the distribution of file size stored on the Kabi File System.
+
+     In the file system proposed, the proportion of truncated section will increase though out the time. It is possible to merge adjacent truncated sections to reduce the occuernce of truncated section to improve the performance. Futher more, it may be worthy to rebuild a file node full of truncated sections at some point, so that the new file node contains the same data without truncated section.
