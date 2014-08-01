@@ -1,0 +1,512 @@
+diff --git a/.gitignore b/.gitignore
+index a7a187b..0cc0a52 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,3 +5,4 @@
+ *.lot
+ *.log
+ *.toc
++*.pdf
+diff --git a/Chapter-1/Chapter-1.tex b/Chapter-1/Chapter-1.tex
+index ac74180..8f0470f 100644
+--- a/Chapter-1/Chapter-1.tex
++++ b/Chapter-1/Chapter-1.tex
+@@ -1,19 +1,19 @@
+ \chapter{Introduction}
+ \label{chap:intro}
+ 
+-    Since the first use of the term "NoSQL" by Carlo Strozzi in 1988, the "NoSQL" database is attracting the attention of developers. Unlike traditional databases, NoSQL database is now used for storage and retrieval of data which is modeled different from the tabular relations. It brings innovation and new ideas to the community, industry and academic. They are now alternatives for classic relational database. Commercial companies like Google and Amazon are using them in production environments for at least 8 years. Compared to relational database, they have advantages in performance, scalability and flexibility whereas low functionality is their disadvantage. The NoSQL database brings new tools and new ideas to the community and provides an alternative to relational databases. It is a good idea to try NoSQL databases and use their unique features in different applications such as distributed file system.
++    Since the first use of the term "NoSQL" by Carlo Strozzi in 1988, the "NoSQL" database is attracting the attention of developers. Unlike traditional databases, NoSQL database is now used for storage and retrieval of data which is modeled differently from the tabular relations. It brings innovation and new ideas to the community, industry and academia. They have became alternatives for classic relational database. Commercial companies like Google and Amazon are using them in production environments for at least 8 years (CITE HERE). Compared to relational database, they have advantages in performance, scalability and flexibility whereas low functionality is their disadvantage. The NoSQL database brings new tools and new ideas to the community and provides an alternative to relational databases. It is a good idea to try NoSQL databases and use their unique features in different applications such as distributed file system.
+ 
+-    Nowadays more and more data are stored online. Individuals are uploading their personal data to web services like DropBox and YouTube, commercial companies are using systems like Amazon S3 to store their data remotely. There are a large number of reasons to store data in the cloud. It makes sharing and collaboration easier and ensures the data can be accessed by its owner anywhere and anytime. In those web services, distributed file system like GFS and HDFS are used to process large amount of data on different machines. The distributed file system can also combine storage on different machine into a logically unified volume and at the same time can provide functionalities like redundancy and load balance. Popular distributed file system adopted by industry and academic institutes include NFS and HDFS. Where NFS provides the functionality of file sharing and HDFS is focuses on MapReduce tasks, etc.
++    Nowadays more and more data are stored online. Individuals are uploading their personal data to web services like DropBox and YouTube and commercial companies are using systems like Amazon S3 to store their data remotely. There are a large number of reasons to store data in the cloud. It makes sharing and collaboration easier and ensures that the data can be accessed by its owner anywhere and anytime. In those web services, distributed file system like GFS and HDFS are used to process large amount of data on different machines. The distributed file system can also combine storage on different machine into a logically unified volume and at the same time can provide functionalities like redundancy and load balancing. Popular distributed file system adopted by industry and academic institutes include NFS and HDFS. Where NFS provides the functionality of file sharing and HDFS focuses on MapReduce tasks, etc.
+ 
+-    A snapshot is the state of a system at a particular point in time. It is becoming popular in modern file system to have the capability to take snapshots. Classic FAT file systems do not support snapshot but their successor NTFS come with snapshot capability. The original ext file system does not have snapshot. But ext2 can obtain snapshot capability with the help of SnapFS and ext3 has a snapshot version named ext3cow. The latest ext4 now has built-in snapshot capability. The recent file system ZFS on Solaris and the experimental file system BTRFS also come with snapshot feature. One of the reasons for this popularity can be the decreasing cost of storage, which makes snapshotting cost effective. A snapshot file system can be used to test installations, keep track of modifications, provide a rollback mechanism, and make the backup process more fluent.
++    A snapshot is a state of a system at a particular point in time. It is becoming popular in modern file system to have the capability to take snapshots. Classic FAT file systems do not support snapshot but their successor NTFS come with snapshot capability. The original ext file system does not have snapshot. But ext2 can obtain snapshot capability with the help of SnapFS and ext3 has a snapshot version named ext3cow. The latest ext4 now has a built-in snapshot capability. The recent file system ZFS on Solaris and the experimental file system BTRFS also come with snapshot feature. One of the reasons for this popularity can be the decreasing cost of storage, which makes snapshotting cost effective. A snapshot file system can be used to test installations, keep track of modifications, provide a rollback mechanism, and make the backup process more efficient.
+ 
+-    MongoDB is now one of the most popular NoSQL database. It has a large and active developer community. (CITE HERE)\cite{rsync_alg} A recent \$150 million investment ensures the long term support and reflects the confidence of the investor. MongoDB is an open source document-oriented database suitable for agile development focusing on scalability, performance and availability.
++    Snapshot can be either read-only or writable. Writable snapshots are also called clones. They are supported by several advanced file system like ZFS and BTRFS. The ext4 file system also has a development branch for writable snapshot. From the user’s point of view, a read-only snapshot is an immutable copy of the file system at a specific time, while a writable snapshot is a fork of the file system at a particular time spot. With the help of writable snapshot, a system can provide similar environment to different users while preserving their configurations and installations. It can also provide file system isolation for process, software or virtual machine.
+ 
+-    Copy-on-write is a strategy widely used in computer science. The copy-on-write strategy doesn't write data in-place. Instead, it makes a copy of the original data and write into that copy. At the end, it will point corresponding pointer or reference in meta data to the overwritten copy. It is designed to ensure consistency, integrity and support transaction. In addition to those benefits, file system using copy-on-write strategy will be able to take snapshots with low performance cost. Without copy-on-write strategy, snapshots either write in-place which is more expensive, or requires special architecture in storage system like the Split-Mirror architecture.
++    Copy-on-write is a strategy widely used in computer science. A program that uses copy-on-write strategy access data though a pointer or a reference. Instead of making changes in-place, a program that uses copy-on-write stratergy will make a copy of the original data and then update the copy. At the end, the program will point corresponding pointer or reference to the updated copy. It is designed to ensure consistency, integrity and support transaction. In addition to those benefits, file system using copy-on-write strategy will be able to take snapshots with low performance cost. Without copy-on-write strategy, snapshots either write in-place which is more expensive, or requires special architecture in storage system like the Split-Mirror architecture.
+ 
+-    Snapshot can be either read-only or writable. Writable snapshots are also called clones, they are supported by several advanced file system like ZFS and BTRFS. The ext4 file system also has a development branch for writable snapshot. From the user’s point of view, a read-only snapshot is an immutable copy of the file system at a specific time, while a writable snapshot is a fork of the file system at a particular spot. With the help of writable snapshot, a system can provide similar environment to different user while preserving their own configuration and installation. It can also provide file system isolation for process, software or virtual machine.
++    MongoDB has become one of the most popular NoSQL database. It has a large and active developer community. A recent \$150 million investment ensures the long term support and reflects the confidence of investors.(CITE HERE)\cite{rsync_alg}  MongoDB is an open source document-oriented database suitable for agile development. It focuses on scalability, performance and availability.
+ 
+-    The Filesystem in UserSpace (FUSE) is an operating system mechanism for Unix-like computer operating systems that lets non-privileged users create their own file systems without editing kernel code. FUSE routes the file system call from VFS in kernel space back to the user space and then lets the user program to process the file system call. It makes developing and debugging a file system much easier. Because the filesystem will be running in user space, there is no need to recompile or debug the kernel and developers will no longer worry about the code will break the kernel code. FUSE is a widely used component of Linux file system, numbers of projects are using fuse like the overlayFS, ntfs-3g and vmware tools. Inspired by FUSE, there are some other userspace filesystem like Dokan under windows.
++    The Filesystem in UserSpace (FUSE) is an operating system mechanism for Unix-like computer operating systems that let non-privileged users create their own file systems without editing kernel code. FUSE routes the file system call from VFS in kernel space back to the user space and then lets the user program to process the file system call. It makes developing and debugging a file system much easier. Because the filesystem will be running in user space, there is no need to recompile or debug the kernel and developers will no longer have to worry whether their code will introduce bugs into the kernel. FUSE is a widely used component of Linux file system. A number of projects are using fuse like the overlayFS, ntfs-3g and vmware tools. Inspired by FUSE, there are some other userspace filesystem like Dokan under windows.
+ 
+ \section{Thesis Statement}
+    \b{-} 
+diff --git a/Chapter-2/Chapter-2.tex b/Chapter-2/Chapter-2.tex
+index ae9359f..d062dfa 100644
+--- a/Chapter-2/Chapter-2.tex
++++ b/Chapter-2/Chapter-2.tex
+@@ -1,34 +1,36 @@
+ \chapter{Related work}
+ \label{chap:related_work}
+ 
+-    In the past, a lot of research eﬀort has been invested in customized file systems, noSQL database and snapshots. Several of them are related to this thesis and they are summarized in this chapter.
++    In the past, a lot of research effort has been invested in customized file systems, noSQL database and snapshots. Several of them are related to this thesis and they are summarized in this chapter.
+ 
+ \section{POSIX}
+ 
+-    POSIX, an acronym for "Portable Operating System Interface", is a family of IEEE standard for operating systems that influences the design of many modern operating system (e.g. Linux, Windows NT, Mac). The propose of this standard is to maintain compatibility between operating system so that a user program uses POSIX api can be compiled properly on all POSIX compatible operating system.
++    POSIX, an acronym for "Portable Operating System Interface", is a family of IEEE standard for operating systems that influences the design of many modern operating system (e.g. Linux, Windows NT, Mac). The POSIX standard defines a standard environment for operating system (process, user, file, directory, etc.) along with a set of APIs for user program (like fork, exec, I/O functions, etc.). Some file format standard (e.g. tar) and some shell utilities (e.g. awk, vi) are also included in the standard. The purpose of this standard is to maintain compatibility between operating system such that a user program that uses POSIX api can be compiled properly on all POSIX compatible operating system.
+ 
+-    The POSIX standard defines a standard environment for operating system (process, user, file, directory, etc.) along with a set of APIs for user program (like fork, exec, I/O functions, etc.). Some file format standard (e.g. tar), some shell utilities (e.g. awk, vi) are also included in the standard. The propose of this standard is standard API for file and directory operations are defined in POSIX.1. 
++    The file system APIs that defines file and directory operations are included in POSIX.1 standrad.
+ 
+ \section{Fuse}
+ 
+-	FUSE, the Filesystem in User Space, is a develop framework for file system.  It has been adopted into the Linux kernel and have many ports on other Unix-like operating systems. FUSE provides a programming interface similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system, so that developers of the file system do not need to understand complicated kernel code and debugging the kernel. It also enables a nonprivileged user to mount their own file system without influencing other uses.
++	FUSE, the Filesystem in User Space, is a developer framework for file system.  It has been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such way developers of the file system do not need to understand complicated kernel code and to debug the kernel. It also enables a nonprivileged user to mount their own file system without influencing other users.
+ 
+ \section{MongoDB}
+ 
+-    MongoDB is a document oriented NoSQL distributed database written in C++. It focuses on scalability, performance and availability. The document oriented storage that can store semi-structured data makes it very flexible and perfect for agile development. In addition, mongoDB also provides features like load balancing and replication. These features make mongoDB an ideal backend for a distributed file system. Developers have already built a file storage system called GridFS using mongoDB which provides a mechanism to store and retrieve file of any size.
++    MongoDB is a document oriented NoSQL distributed database written in C++. It focuses on scalability, performance and availability. Document oriented storage that can store semi-structured data makes it flexible and makes it suitable for agile development. In addition, mongoDB also provides features like load balancing and replication. These features make mongoDB an ideal backend for a distributed file system. Developers have already built a file storage system called GridFS using mongoDB which provides a mechanism to store and retrieve file of any size.
+ 
+ \section{Snapshot Storage System}
+ 
+-    Snapshots are important features for a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRF and ext4.
+-The LVM snapshot is a snapshot system implemented in logic volume manager level. Its snapshot system take snapshot of the logic volume hence gives snapshots capability to any file system build upon it. However, as an underlying service, LVM snapshot isn’t aware of file structures, making it hard to find duplicate data stream and thus is less efficient in terms of disk space.
++    Snapshot is an important features of a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRFS, and ext4.
+     
+-    SnapFS was a file system focusing on snapshots in Linux kernel. It is strongly coupled with its underlying ext2/3 file system. In this way SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to ext filesystem family. 
++    The LVM snapshot is a snapshot system implemented in logical volume manager level. It takes snapshot of blocks in the logical volume and gives snapshots capability to any file system build upon the LVM system. However, as an underlying service, LVM snapshot is not aware of file structures, making it hard to find duplicate data stream and thus is less efficient in terms of disk space.
+     
+-    Similar to SnapFS, OverlayFS is also a file system concentrate on snapshots and it is built upon other file systems. OverlayFS is popular in embedded system with a lot flexibility since it does not agree with SnapFS and choose not interfere its underlying file system. It applies copy-on-write on files and directory level.
+-BTRFS is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them support copy-on-write writable snapshots at block level granularity.
++    SnapFS was a file system focusing on snapshots in Linux kernel. It is strongly coupled with its underlying ext2/3 file system. Therefore SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to ext filesystem family. 
+     
+-    As of the latest version of ext file system, i.e. ext4, though it does not support snapshot when published, later announces copy-on-write snapshot support on 2011. The writable snapshot feature is also announced in 2012 but haven’t been merged to upstream.
++    OverlayFS is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. Bu OverlayFS does not interfere its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as there's not restriction of the underlying file system. The OverlayFS applies copy-on-write on files and directory level.
++
++    BTRFS is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them support copy-on-write writable snapshots at block level granularity.
++    
++    Some early verions of ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into ext4 main branch. This makes ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for ext4.
+ 
+ \section{rsync}
+     
+-    The rsync algorithm is well known for its implementation, the rsync utility software and protocol for unix-like system. This algorithm is proposed by Andrew Tridgell in his PhD thesis where he described it as “for the efficient update of data over a high latency and low bandwidth link“. In order to achieve such efficiency, the algorithm try to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in the delta encoding and reduced the data transferred between remote machines.
++    The rsync algorithm is used in the rsync utility software and protocol for unix-like system. This algorithm is invented by Andrew Tridgell and he described the algorithm as "for the efficient update of data over a high latency and low bandwidth link". In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.
+diff --git a/Chapter-3/Chapter-3.tex b/Chapter-3/Chapter-3.tex
+index 7a6fea7..a25e2d5 100644
+--- a/Chapter-3/Chapter-3.tex
++++ b/Chapter-3/Chapter-3.tex
+@@ -7,9 +7,9 @@
+ \label{fig:modules}
+ \end{figure}
+ 
+-    The file system we implemented (referred as “the Kabi File System” hereafter) can be divided into two internal modules, the storage abstraction module and the file system logic module, as shown in \fref{fig:modules}. The file system logic module decomposes any file system call to series of standard operations to the basic elements in the file system. While the storage abstraction module abstracts the underlying storage media and expose a set of method to the file system logic. There is an internal interface in between that defines several standard method to operate the basic elements. 
++    The file system we implemented (referred as “the Kabi File System” hereafter) can be divided into two internal modules, the storage abstraction module and the file system logic module, as shown in \fref{fig:modules}. The file system logic module decomposes any file system call to a series of standard operations to the basic elements in the file system. While the storage abstraction module abstracts the underlying storage media and exposes a set of method to the file system logic. There is an internal interface in-between that defines several standard methods to operate basic elements. 
+ 
+-    \fref{fig:basic_entities} shows a basic view of the elements and their relations in the Kabi File System. It consists of 5 elements: the snapshot node, the patch node, the directory node, the file node and the block node. Nodes are referring to each other and form a directed acyclic graph. In this implementation, each type of node is stored as a document in a MongoDB collection except for the patch node which is stored as a member object of a snapshot node. 
++    \fref{fig:basic_entities} shows a basic view of the elements and their relations in the Kabi File System. It consists of 5 elements: the snapshot node, the patch node, the directory node, the file node and the block node. Nodes refer to each other and form a directed acyclic graph. In this implementation, all type of nodes are stored as a document in a MongoDB collection, except for the patch node which is stored as a member object of a snapshot node. 
+     
+ \begin{figure}[hbtp]
+ \centering
+@@ -20,7 +20,7 @@
+ 
+ \section{Module Design and Initialization}
+ 
+-    The user program talks to the file system logic through file system APIs. Therefore for different file system API (e.g. FUSE, Dokan, POSIX), we can have different implementation of file system module. The storage abstraction module operates the underlying storage media through its driver, protocol or API. So an implementation of the storage media module is associate with certain storage media (e.g. MongoDB, Volume manager, Amazon S3 service). By using this design, we can easily migrate the file system to other operating system (by changing the file system logic module) or other underlying storage media (by replacing the storage abstraction module).
++    The user program talks to the file system logic through file system APIs. Therefore for different file system API (e.g. FUSE, Dokan, POSIX), we can have different implementations of file system module. The storage abstraction module operates the underlying storage media through its driver, protocol or API. So an implementation of the storage media module is associated with certain storage media (e.g. MongoDB, Volume manager, Amazon S3 service). By using this design, we can easily migrate the file system to other operating system (by changing the file system logic module) or other underlying storage media (by replacing the storage abstraction module).
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -31,21 +31,19 @@
+ 
+ 	In our proof-of-concept implementation, FUSE is used to connect the user program file system calls to the Kabi File System. A file system call from a user program will first be captured by VFS module in the kernel and routed to FUSE. FUSE will then pass on the file system call to the file system and pop the return value back to VFS module.
+ 
+-    In order to connect the FUSE dynamic library “libfuse”, an open source project FUSE-JNA is used to map libfuse function to Java methods. The project is slightly modified so as to keep the logging module consistent with the file system. JNA of version 3.5.2 is required by FUSE-JNA to avoid the timestamp issue.
+-
+     On the other side, the MongoDB Java driver is used by system abstraction module to communicate with the MongoDB daemon process (Mongos or Mongod).
+     
+     The system diagram in \fref{fig:diagram} shows the relationship between the file system, MongoDB and operating system.
+ 
+-    On file system initialization, parameters related to this instance of Kabi File system will be stored in a MongoDB collection. For example, the size of data block in bytes, must be provided, the name of the MongoDB collection used by the file system. These parameters are immutable once the file system is established.
++    On file system initialization, parameters related to this instance of Kabi File system must be provided and be stored in a MongoDB collection. For example, the size of data block in bytes and the name of the MongoDB collection used by the file system. These parameters are immutable once the file system is established.
+ 
+-    On file system mounting, the mount program requires a JSON format configuration file. The configuration file contains parameters related to this mount. It has three sections, specifying the FUSE options, MongoDB options, and file system client options. These parameters are important to specify the data source (such as the ip address and server status of MongoDB server), the snapshot to be mounted and the name of the MongoDB collection where the initialization parameter is written. These parameters only affects this mount on local machine and do not have influence on remote data.
++    On file system mount operation, the mount program requires a JSON format configuration file. The configuration file contains parameters related to this mount operation. It has three sections, that specify the FUSE options, MongoDB options, and file system client options. These parameters are important to know about the data source (such as the ip address and server status of MongoDB server), the snapshot to be mounted and the name of the MongoDB collection where the initialization parameter is written. These parameters only affect this mount on the local machine and do not have influence on the remote server.
+ 
+ \section{Nodes}
+ 
+-    Nodes the basic operatable entities defined by the internal interface. They are the intermediate objects between file system logic module and the storage abstraction module. The storage abstraction module manages how these nodes are stored in the MongoDB.
++    Nodes are the basic operatable entities defined by the internal interface. They are the intermediate objects between file system logic module and the storage abstraction module. The storage abstraction module manages how these nodes are stored in the MongoDB.
+ 
+-    Block nodes are the basic element in this file system. The block node is a representation of fixed-size binary data. Within a particular instance of the file system, the length of the byte string is immutable, while one can set different value for different instance of the file system on file system initialization. Though the size of data represented by the node is fixed, the node does not have to store that much bytes because the file system will add \'\textbackslash0\' padding at the end when necessary. In addition to the data field, a block node has two other fields: a 128 bit hash of the byte string and a 32 bit rolling hash of the byte string. The structure of a typical block node is shown in \ref{tab:block_fields}.
++    Block nodes are the basic elements in this file system. A block node is a representation of fixed-size binary data. That size of data represented by the node is called rep-size. The rep-size is an immutable parameter which is determind on file system initialization. Different instance of Kabi file system can have different rep-size. Though rep-size is fixed, a block node does not have to actually store that much bytes. If the size of data stored in block is smaller than rep-size, the Kabi file system will add `\textbackslash0' padding at the end. In addition to the data field, a block node has two other fields: a 128 bit hash of the byte string and a 32 bit rolling hash of the byte string. The structure of a typical block node is shown in \tref{tab:block_fields}.
+ 
+ \begin{table}
+ \caption{Fields in Block Node Object}
+@@ -62,7 +60,7 @@ data & the block data\\
+ \end{center}
+ \end{table}
+ 
+-    A file node is a representation of a certain file in the file system. In the Kabi File System, the content of the file is made up of several sections of variable length and each section is represented through a “data section” bson object (CITE HERE OR EXPLAIN). A file node consists of a list of data sections and some other meta fields. Connecting the content of data section in order forms the content of the file. Each data section corresponds to exactly one block node and the block node may contribute only part of its binary data to the data section instead of its entire binary data. If only part of block node data is used by the data section, two integers will be specified to locate the start index and end index. \fref{fig:file_and_section} shows a file node consist of 3 data sections where the first data section contributes all 4 bytes of corresponding block node data, the second section gets 2 bytes from its corresponding block node and the last section receives the first 2 bytes from its corresponding block node.
++    A file node is a representation of a file in the file system. In the Kabi File System, the content of the file is made up of several sections of variable length and each section is represented through a ``data section'' BSON object (CITE HERE OR EXPLAIN). A file node consists of a list of data sections and some other meta fields. Connecting the content of data section in order forms the content of the file. Each data section corresponds to exactly one block node and the block node may contribute only part of its binary data to the data section instead of its entire binary data. If only a part of the block node data is used by the data section, two integers will be specified to locate the start index and end index. \fref{fig:file_and_section} shows a file node that consist of 3 data sections where the first data section contributes all 4 bytes of corresponding block node data, the second section gets 2 bytes from its corresponding block node and the last section receives the first 2 bytes from its corresponding block node.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -71,7 +69,7 @@ data & the block data\\
+ \label{fig:file_and_section}
+ \end{figure}
+ 
+-	The detailed structure of a file node is shown in \ref{tab:file_fields}.
++	The detailed structure of a file node is shown in \tref{tab:file_fields}.
+ 
+ \begin{table}
+ \caption{Fields in File Node Object}
+@@ -86,13 +84,13 @@ arc & a list of Section object\\
+ size & size of the file\\
+ owner & owner of the directory\\
+ gowner & group owner of the directory\\
+-modified & timestamp for last modification\\
++modified & timestamp of last modification\\
+ \bottomrule
+ \end{tabular}
+ \end{center}
+ \end{table}
+ 
+-    The data section object is a Mongo bson object. It consists of three basic types as shown in \ref{tab:section_fields}, an object id referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifing the index of last byte in block node. For the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
++    The data section object is a Mongo BSON object. It consists of three basic types as shown in \tref{tab:section_fields}, an object id referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifing the index of last byte in block node. In the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -118,9 +116,9 @@ offset & the offset of last byte in this \b{section}\\
+ \end{center}
+ \end{table}
+ 
+-    Another important field of a file node is the “size”. It stores an integer value, representing the size of this file in bytes. When reading the file, \'\textbackslash0\' padding will be append to the end of files if the “size” value exceeds the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the “size” vale, data will be truncated. This design allows faster creation and truncate operation to a file.
++    Another important field of a file node is the ``size''. It stores an integer value, representing the size of this file in bytes. When reading the file, `\textbackslash0' padding will be append to the end of files if the ``size'' value exceed the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the “size” vale, data will be truncated. This design allows faster creation and truncate operation to a file.
+ 
+-    A directory node corresponds to a directory in the file system. Similar to the file node, it also consists of fields that store the meta information and a list of subnode objects. Similar to the data section object in file node, subnode object is also stored as MongoDB BSON object. Depending on the type of its referencing node, it may represent a sub directory or a file under the directory. A subnode object contains a reference to a directory node or a file node, and a string field represents the display name of this subdirectory or subfile.
++    A directory node corresponds to a directory in the file system. Similar to the file node, it also consists of fields that store the meta information and a list of subnode objects. The subnode object is similar to the data section object in file node. It is also stored as MongoDB BSON object. Depending on the type of its referencing node, it may represent a sub directory or a file under the directory represented by the directoy node. A subnode object contains a reference to a directory node or a file node, and a string field represents the display name of this directory or file.
+ 
+ \begin{table}
+ \caption{Fields in Directory Node Object}
+@@ -155,18 +153,19 @@ id & id of the file or subdirectory\\
+ \end{center}
+ \end{table}
+ 
+-    The other two types of nodes are patch nodes and snapshot nodes. These two nodes are related to the snapshot system and will be discussed in Chapter \ref{chap:snapshot}.
++    The other two types of nodes are patch nodes and snapshot nodes. These two nodes are related to the snapshot system and will be discussed in \cref{chap:snapshot}.
+ 
+ \section{File System Operations}
+     The file system logic module decomposes the FUSE file system calls to standard node operations defined by the internal interface. Most of the FUSE file system calls have been implemented in the Kabi File System, some of those important calls include getattr(), access(), read(), write(), rmdir(), unlink(), mkdir(), truncate(), flush(), open() and release(). Related node operations are addDirNode2db(), addFileNode2db(), addDataNode2db() and patch(). The former 3 methods write a node object into the database as a new node. The patch() method replaces an existing node with its new version.
+ 
+ \subsection{Read operations}
+-    getattr(), access() and read() are three important FUSE functions. The access() function tests the existence and permission settings of a file or directory in the file system. getattr() returns the meta information about a file or directory. The read() function reads and returns certain length of binary data at a specific offset.
+-The first step of a read operation is always finding the target file or directory node by path. In order to do so, the file system should parse the given path and find all corresponding nodes on the path in order from root directory to the target. The file system will start with the root directory, keep traversing subnode list and find the directory on the path until the algorithm hit the target or find it nowhere.
++    getattr(), access() and read() are three important FUSE functions. The access() function tests the existence and permission settings of a file or directory in the file system. getattr() returns the meta information about a file or directory. The read() function reads and returns binary data of given length starting at a specified offset.
+ 
+-    This strategy is generally not satisfactory especially when the target hides deep in the directory tree. In such case, an access call will be mapped to a sequence of database queries on directory nodes and may become a bottleneck in performance. To solve this issue, a cache that stores the path-node relationship is introduced. With the help of the path-node cache, the file system will only query the database when the target directory or file cannot be found in the cache.
++    The first step of a read operation is always finding the target file or directory node by its path. In order to do so, the file system should parse the given path and find all corresponding nodes on the path in order from root directory to the target. The file system will start with the root directory, keep traversing subnode list and find the directory on the path until the algorithm hit the target or find it nowhere.
+ 
+-    The path-node cache is a move-to-front dictionary which maps a path string to a directory node or a file node. The cache has a fixed capacity and assumes temporal locality in the access pattern. It uses move-to-front algorithm to keep frequently accessed hot item in the cache and remove those cold items that have not been accessed for long. The cache also assumes spatial locality: when accessing a file or directory, not only the file or directory itself is cached but all directories on the path, i.e. its parent and ancestor directories also go into the cache. Thus, when visiting contents under the same directory later, the file system can directly find its parent node in cache.
++    This strategy is generally not satisfactory especially when the target hides deep in the directory tree. In such case, a simple access call will be mapped to a sequence of database queries on directory nodes and may become a bottleneck in performance. To solve this issue, a cache that stores the path-node relationship is introduced. With the help of the path-node cache, the file system will only query the database when the target directory or file cannot be found in the cache.
++
++    The path-node cache is a move-to-front dictionary which maps a path string to a directory node or a file node. The cache has a fixed capacity and assumes temporal locality in the access pattern. It uses move-to-front algorithm to keep frequently accessed hot item in the cache and remove those cold items that have not been accessed for long. The cache also assumes spatial locality: when accessing a file or directory, not only the file or directory itself is cached but all directories on the path, i.e. its parent and ancestor directories, also go into the cache. Thus, when touching contents under the same directory later, the file system can directly find its parent node in cache.
+ 
+     Once the file node is retrieved, reading the file is intuitive. The file system will traverse the data section list to find the id of block node associate with the read call and calculate the begin and end index of the bytes of the block content that will be copied to read buffer. After that the file system will query MongoDB for block nodes and copy requested data to buffer.
+ 
+@@ -181,9 +180,9 @@ The first step of a read operation is always finding the target file or director
+ 
+     Write operations involve FUSE calls named write(), chmod(), chown(), mkdir(), unlink() and rmdir(). The write() call is the most important file system call that writes data into a file from some offset. Other functions change the meta information of a directory or file.
+ 
+-    Block nodes are designed to be immutable. File nodes and directory nodes use copy-on-write strategy when an overwrite is requested. So when an overwrite to file node or directory node is requested, the file system will make a local copy of the node and apply the modification to this local copy. The file system will then upload that copy to remote and attach it to its parent directory replacing the pre-modified node as shown in the figure below. In this way, the old version of the node is saved for snapshot and read operation will not accidentally read in a node in an incomplete state. As shownin \fref{fig:cow}, during this process, we use addNode2DB() operation to add a new node and use the patch() method to replace the old version with this new node.
++    Block nodes are designed to be immutable. File nodes and directory nodes use copy-on-write strategy when an overwrite is requested. So, when an overwrite to file node or directory node is requested, the file system will make a local copy of the node and apply the modification to this local copy. The file system will then upload that copy to remote and attach it to its parent directory replacing the original node as shown in the \fref{fig:cow}. In this way, the old version of the node is saved for snapshot and read operation will not accidentally read in a node that is in an incomplete state. As shown in \fref{fig:cow}, during this process, we use addNode2DB() operation to add a new node and use the patch() method to replace the old version with this new node.
+ 
+-	When writing a file, the write request will not immediately flush data into persistent storage but instead the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a file close request or an explicit flush request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. The flush process is atomic, garenteed by MongoDB. \fref{fig:buffer} shows how the buffer works.
++	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. The flush process is atomic, garenteed by MongoDB. 
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -192,20 +191,19 @@ The first step of a read operation is always finding the target file or director
+ \label{fig:buffer}
+ \end{figure}
+ 
+-	During a flush, a data section may be unaffected, partly overwritten or entirely overwritten. Block node will be detached from the file if its representing data section has been entirely overwritten. The data section object will be truncated if this section is partly overwritten. The figure below shows the routine to write a file.
+-
++	During a flush, a data section may be unaffected, partly overwritten or entirely overwritten. Block node will be detached from the file if its representing data section has been entirely overwritten. The data section object will be truncated if this section is partly overwritten. The \fref{fig:buffer} shows the routine to write a file.
+ 
+-    Compared to the traditional copy-on-write snapshot file system which copies and overwrites the entire block whenever there is a byte change, this design can make use of the old block. Since the old block will be referenced by snapshots, reusing it in current view may save some storage.
++    Compared to the traditional copy-on-write snapshot file system which copies and overwrites the entire block whenever there is a byte change, this design can make use of the old block. Because the old block will be keeped for snapshot, reusing it in current view may save some storage.
+ 
+-    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA id. But the overheads may be worthy. In extreme case, overwriting 2 bytes on the boundary of two block results in two new blocks in traditional copy-on-write design while only result in a 2-byte block in our design. With a block size of 2,048 bytes and a file size of 20,480 bytes, this means 3,798 bytes in savings.
++    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA id. There're many cases where this overhead is worthy. In the extreme case, overwriting 2 bytes on the boundary of two block results in two new blocks in traditional copy-on-write design while only result in a 2-byte block in our design. With a block size of 2,048 bytes and a file size of 20,480 byte. The saving in this case is 3798 bytes.
+ 
+ \subsection{Deduplication}
+ 
+     In a copy-on-write file system, there is rarely an in-place modification to data. In most cases, making a change to the file system means creation of new nodes. Creating a new block node is an expensive operation as it requires all data transferred to remote and a permanent reduction of the available space on the storage media.
+     
+-    We found that not all block node creation is necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, without konwing that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
++    We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
+ 
+-    By using SHA hash as the block node id, it is possible to find and eliminate blocks that contain duplicate data. Before a block of binary data is uploaded, the file system will query the database with its SHA. If a instance with same id is found, the file system will stop unloading the block node but directly return the id of existing node with same hash value.
++    By using SHA hash as the block node id, it is possible to find and eliminate blocks that contain duplicate data. Before a block of binary data is uploaded, the file system will query the database with its SHA hash. If a instance with same id is found, the file system will stop unloading the block node but directly return the id of existing node with same hash value.
+ 
+     In this way, the file system not only can perform a copy operation efficiently but also find duplicat blocks or similar file and save space. 
+ 
+diff --git a/Chapter-4/Chapter-4.tex b/Chapter-4/Chapter-4.tex
+index eb1eb8c..87ebe11 100644
+--- a/Chapter-4/Chapter-4.tex
++++ b/Chapter-4/Chapter-4.tex
+@@ -1,8 +1,8 @@
+ \chapter{Snapshot}
+ \label{chap:snapshot}
+-    One of the major features of the Kabi File System is writable copy-on-write snapshot. Snapshot nodes are designed to be one of the basic component of the Kabi File System. The “current” status of the file system is also treated as a writable snapshot. This lightweight snapshot system focuses on reducing the storage space occupied by a snapshot.
++    One of the major features of Kabi File System is writable copy-on-write snapshot. Snapshot nodes are designed as the basic components of Kabi File System. The ``current'' status of the file system is also treated as a writable snapshot. This lightweight snapshot system focuses on reducing the storage space occupied by a snapshot.
+ 
+-    In a snapshot system, most snapshots do not keep a copy of the entire file system but instead they will log the changes since the last snapshot. In this way the snapshot system can rebuild the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on the one file node or one directory node since the last snapshot.
++    In a snapshot system, most snapshots do not keep a copy of the entire file system but instead log the changes since the last snapshot. The snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on a file node or a directory node since the last snapshot.
+ 
+     (ADD LONG TERM IMPACT)
+ 
+@@ -33,13 +33,13 @@
+ \label{fig:snap_tree_example}
+ \end{figure}
+ 
+-    At initial status, the file system contains a default writeable snapshot node (node \#0 in \fref{fig:snap_tree_example}) representing the current status of the file system. This unique snapshot called the root snapshot is the only snapshot node that does not reference other snapshot. For initial status, writes to the file system go directly into the root snapshot.
++    At initial state, the file system contains a default writeable snapshot node (node \#0 in \fref{fig:snap_tree_example}) representing the current state of the file system. This unique snapshot called the root snapshot is the only snapshot node that does not reference other snapshot. For initial state, writes to the file system go directly into the root snapshot.
+     
+     After a snapshot is taken, a new snapshot node (node \#1) is created referring to the root snapshot node. Subsequent write operations will not only write data into the root snapshot but also submit patches to all snapshot connected to root snapshot, so as to reflect the difference between snapshot node \#1 and its referencing node \#0.
+ 
+     Branching a snapshot is equivalent to creating a new snapshot node referring the snapshot being forked. As shown in \fref{fig:snap_tree_example}, node \#3 is created and connected to snapshot node \#2 in order to branch the file system based on snapshot \#2.
+ 
+-    In the snapshot tree, the main branch is the branch that contains root snapshot node. All other branches are side branches. In a branch, the latest snapshot node represents the “current status” of the file system of this branch. Other snapshot nodes forms the historical status of their corresponding branch. \fref{fig:branches} shows the idea of branch
++    In the snapshot tree, the main branch is the branch that contains root snapshot node. All other branches are side branches. In a branch, the latest snapshot node represents the “current status” of the file system of this branch. Other snapshot nodes forms the historical status of their corresponding branch. \fref{fig:branches} shows the idea of branch.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -52,11 +52,11 @@
+ 
+     As mentioned in previous section, there are two types of snapshot node in this file system, namely the root snapshot node and the non-root snapshot node.
+ 
+-    The root snapshot is unique in the file system. It is the root of the up-tree (CITE HERE OR EXPLAIN) and does not reference any other snapshot. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to root snapshot node is intuitive and faster than any other snapshot, so root snapshot is recommended to be used to represent the most frequently accessed snapshot or the current status of the file system.
++    The root snapshot is unique in the file system. It is the root of the up-tree (CITE HERE OR EXPLAIN) and does not reference any other snapshots. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to the root snapshot node is intuitive and faster than any other snapshot, so the root snapshot is recommended to represent the most frequently accessed snapshot or the current status of the file system.
+ 
+-    On the other hand, a non-root snapshot does not have their own root directory but keeps a reference to another snapshot node and a list of patch nodes which represent the difference between this non-root snapshot and the referenced snapshot. Reading a non-root snapshot will first read the corresponding content in referenced snapshot and then lookup the patch list to find out if the content is marked as changed in this snapshot. To write the non-root snapshot upload the changed nodes into the database and pack their id into a patch node and submit the patch. Be aware that not all non-root snapshots are writable, once the non-root snapshot is referenced by some other snapshot nodes, it becomes immutable.
++    On the other hand, a non-root snapshot does not have its own root directory but needs to keep a reference to another snapshot node and a list of patch nodes. The list represent the difference in content between this non-root snapshot and the referenced snapshot. Reading a non-root snapshot will first read the file system content in referenced snapshot and then lookup the patch list to find out if the content is changed in this snapshot. To write data, the non-root snapshot uploads the changed nodes into the database, build a patch node with both ids, and submit the patch to remote. The submition is atomic and ensures the file system will not be left in a incomplete state. It is important that not all non-root snapshots are writable. Once the non-root snapshot is referenced by some other snapshot nodes, it becomes immutable.
+ 
+-    \fref{fig:root_and_nonroot} shows a root snapshot node (right) and a non-root snapshot (left).
++    \fref{fig:root_and_nonroot} shows the structure of a root snapshot node (right) and the structure of a non-root snapshot (left).
+     
+ \begin{figure}[hbtp]
+ \centering
+@@ -65,21 +65,24 @@
+ \label{fig:root_and_nonroot}
+ \end{figure}
+ 
+-    A patch node reflects a series of changes to one file or one directory node. It references a pair of file nodes or directory nodes. The two nodes referred are the target node (original version) and its replacement (changed version).
++    A patch node reflects a single modification or a series of changes to one node. The node can be either file node or one node. It references a pair of file nodes or directory nodes. The two nodes referred are the target node (original version) and its replacement (changed version).
+ 
+-    \fref{fig:patches} demonstrates the way patch works. Snapshot 1 and 2 demonstrates how a directory is changed between snapshots. The directory that was represented by node $d_2$ in snapshot 2 is now replaced by directory node $d_1$ in snapshot 1. In snapshot 2, the directory has a new subdirectory but the file under that directory remains unchanged. Hence the target node (node $d_2$) and replacement node (node $d_1$) have a reference to a same file node but the target node $d_2$ has one more reference to a directory node. In the example of snapshot ($a$) and snapshot ($b$), a file is changed in both snapshot, its original version is $f_1$, the intermedia version in snapshot ($b$) is $f_2$ and final version is $f_3$ in snapshot ($a$). In snapshot $\alpha$ and snapshot $\beta$, file $f_3$ is replaced by $f_2$ in snapshot ($\beta$) and replaced by $f_1$ in snapshot ($\alpha$).  
++    \fref{fig:patches} demonstrates the way the patch systemworks. Snapshot 1 and 2 demonstrates how a directory changes between snapshots. The directory that is represented by node $d_2$ in snapshot 2 is now replaced by directory node $d_1$ in snapshot 1. In snapshot 2, the directory has a new subdirectory but the file under that directory remains unchanged. Hence the target node (node $d_2$) and replacement node (node $d_1$) have a reference to =the same file node but the target node $d_2$ has one more reference to a directory node. In the example of snapshot ($a$) and snapshot ($b$), a file changes in both snapshot, its original version is $f_1$, the intermedia version in snapshot ($b$) is $f_2$ and final version is $f_3$ in snapshot ($a$). In snapshot $\alpha$ and snapshot $\beta$, file $f_3$ is replaced by $f_2$ in snapshot ($\beta$) and replaced by $f_1$ in snapshot ($\alpha$).  
+ 
+ \begin{figure}[hbtp]
+ \centering
+-\includegraphics[width=0.75\textwidth]{Chapter-4/figs/fig12.png}
++\includegraphics[width=0.75\textwidth]{Chapter-4/figs/fig14.png}
+ \caption{The Principle of Patches}
+ \label{fig:patches}
+ \end{figure}
+ 
+ \section{Operations}
++
++    Operations in snapshot system involves read the content in a snapshot and make changes to (or write) a writeable snapshot. Make changes to the current state of the file system also involves snapshot write operation as the current state of the file system is also treated as a snapshot in Kabi file system.
++
+ \subsection{Read operations}
+ 
+-    When reading a file or a directory in non-root snapshot, the file system must to do a lot of lookup in patch lists to ensure we are reading the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file “/a/d.txt” in snapshot \#1 shown in figure below, the file system will first read in “/” directory in root snapshot which is node \#3) . Then transverse all involved snapshots (\#1 and \#2) to see if there’s a patch whose target node is node \#3. Since no such patch is found, this means node \#3 is the “/” directory node of all snapshot node (\#1, \#2 and \#3). Then the file system will look for “a” directory under node \#3 and corresponding patches. In this example, there is a directory (node \#9) with display name “a” under node \#3 but there is also a patch to node \#9 in snapshot \#2. That means node \#5 is the “/a” directory node of snapshot \#0 while node \#6 is the directory node for snapshot \#1 and snapshot \#2. Follow the same procedure, we will find node \#8 is the “/a/d.txt” node in snapshot \#2 but for snapshot \#1 “/a/d.txt” represented by node \#6.
++    When reading a file or a directory in the non-root snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot \#1 shown in figure below, the file system will first read in ``/'' directory in root snapshot which is node \#3) . Then it transverses all involved snapshots (\#1 and \#2) to see if there's a patch whose target node is node \#3. Since no such patch is available, this means node \#3 is the ``/'' directory node of all snapshot node (\#1, \#2 and \#3). Then the file system will look for “a” directory under node \#3 and corresponding patches. In this example, there is a directory (node \#9) with display name “a” under node \#3 but there is also a patch to node \#9 in snapshot \#2. That means node \#5 is the ``/a'' directory node of snapshot \#0 while node \#6 is the directory node for snapshot \#1 and snapshot \#2. Follow the same procedure, we will find node \#8 is the ``/a/d.txt'' node in snapshot \#2 but for snapshot \#1 ``/a/d.txt'' represented by node \#6.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -88,7 +91,7 @@
+ \label{fig:read_patches}
+ \end{figure}
+ 
+-    As one can see, read operations deeply rely on the patch lookup operation. To avoid query and traverse all involved snapshot nodes and patch nodes on every a read operation, a runtime patch list is built and stored as hashtable in memory when a non-root snapshot node is mounted. The runtime patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot \#3, a runtime patch list that contains all effective patches in snapshot \#3 and \#2 is created.
++    As one can see, read operations rely on the patch lookup operation. To avoid query and traverse all involved snapshot and patch nodes on every read operation, a local patch list is built and stored as hashtable in memory when a non-root snapshot node is mounted. The local patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot \#3, a local patch list that contains all effective patches in snapshot \#3 and \#2 is created.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -97,18 +100,18 @@
+ \label{fig:combine_patch_list}
+ \end{figure}
+ 
+-    Not all patches in patch lists will be combined into the runtime patch list. Some patches are mergeable and some are duplicated. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node of a patch is also the target node of another patch, these two patch node can be merged into one runtime patch. Another example is snapshot ($\alpha$) and ($\beta$), when two patch nodes have the same target node, they are duplicated and one of them can be discarded.
++    Not all patches in patch lists will be combined into a local patch list. Some patches are mergeable and some are duplicated. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node $f_2$ of a patch is also the target node of another patch, these two patch node can be merged into one local patch. Another example is snapshot ($\alpha$) and ($\beta$), the two patch shown in the figure have the same target node $f_3$. When snapshot ($\alpha$) is mounted, the duplicated patch in snapshot ($\beta$) will be read in because snapshot ($\beta$) is referenced by snapshot ($\alpha$). The duplicated patch will then be discard at local machine.
+ 
+ \begin{figure}[hbtp]
+ \centering
+ \includegraphics[width=0.7\textwidth]{Chapter-4/figs/fig19.png}
+-\caption{Merge Patches}
++\caption{Merge Patches (Local)}
+ \label{fig:merge}
+ \end{figure}
+ 
+ \subsection{Write operations}
+ 
+-	\fref{fig:create_snapshots} below briefly demonstrates how patch node and snapshots work with write operations. This example has 3 snapshots. node \#0 is the root snapshot node representing the current status of the main branch. Snapshot node \#2 represents the initial status and node \#1 is the intermediate status of main branch. At initial status, the file system contains three directory “/”, “/a”, “/b” and two files “/a/c.txt”, “/a/d.txt”. In between the initial snapshot and the next snapshot, file “/a/d.txt” was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file “/a/d.txt” was deleted. A new patch is attached to snapshot 2 to reflect this change.
++	\fref{fig:create_snapshots} below briefly demonstrates how patch node and snapshots work with write operations. This example has 3 snapshots. node \#0 is the root snapshot node representing the current status of the main branch. Snapshot node \#2 represents the initial status and node \#1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -117,9 +120,9 @@
+ \label{fig:create_snapshots}
+ \end{figure}
+ 
+-    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take a snapshot on main branch and side branch.
++    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branchs.
+ 
+-    In order to take a new snapshot on main branch, the file system will create a new snapshot node in between the root snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the root snapshot. This new snapshot node will represent the status of this branch at the time it is created. While the current status of the main branch is still the root snapshot.
++    In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the root snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the root snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current status of the main branch is still the root snapshot.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -128,7 +131,7 @@
+ \label{fig:take_snapshot_root}
+ \end{figure}
+     
+-	To take a snapshot on a side branch, the file system will create a new snapshot node attached to the end of the side branch. The newly created snapshot node will reference the latest snapshot on this branch and have an empty patch list. After attached to the branch, this snapshot will become the current status of this branch.
++	To take a snapshot on a side branch, the file system will create a new snapshot node attached to the end of the side branch. The newly created snapshot node will reference the latest snapshot on this branch and have an empty patch list. After attaching to the branch, this snapshot will become the current status of this branch.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -137,7 +140,7 @@
+ \label{fig:take_snapshot_nonroot}
+ \end{figure}
+     
+-    When writing a non-root leaf snapshot, the Kabi File System will submit new patches to that non-root snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the root snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the root snapshot. In order to keep its previous version X in snapshot \#2, a “reverse” patch node will be submitted to revert node Y back to its original version X. In this way, the root snapshot have the new version Y while all other snapshots keep the old version X.  In the second example, the file system is trying to replace node X with its new version Y in snapshot \#3. This time it can simply submit a X->Y patch to snapshot \#3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
++    When writing a non-root leaf snapshot, the Kabi File System will submit new patches to that non-root snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the root snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the root snapshot. In order to keep its previous version X in snapshot \#2, a ``reverse'' patch node (Y-to-X) will be submitted to revert node Y back to its original version X. In this way, the root snapshot will have the new version Y while all other snapshots keep the old version X. In the second example, the file system is trying to replace node X with its new version Y in snapshot \#3. Compared to the first example, the file system now can simply submit a X-to-Y patch to snapshot \#3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -146,16 +149,16 @@
+ \label{fig:write_snapshot_node}
+ \end{figure}
+ 
+-    To create a branch based on the root snapshot, It is recommended to create a dummy snapshot first and then fork from that dummy node instead of branching the root snapshot directly. This is because write operation to root snapshot will submit patches to all connected snapshot nodes and we wish to limit the number of snapshots connected to the root snapshot. If we fork the root snapshot directly then there will be multiple snapshot node connected on to the root snapshot node. \fref{fig:dummy_node} demonstrates this issue:
++    To create a branch based on the root snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the root snapshot directly. This is because a write operation to root snapshot will submit patches to all snapshot nodes connected to root snapshot node. Hence we wish to limit the number of snapshots connected to the root snapshot. If we fork the root snapshot directly then there will be multiple snapshot node connected on to the root snapshot node. \fref{fig:dummy_node} demonstrates this issue:
+ 
+ \begin{figure}[hbtp]
+ \centering
+ \includegraphics[width=0.8\textwidth]{Chapter-4/figs/fig16.png}
+-\caption{Branching Root Snapshot Node}
++\caption{Branching Root Snapshot Node Directly}
+ \label{fig:dummy_node}
+ \end{figure}
+ 
+-	Generally, within a shanshot, each node (file or directory) should have no more than one patch associate with it. For example, a patch replacing node 0 with node 1 and a patch replacing node 1 with  node 2 can be merged into one patch. This happens when a node is modified multiple times. For time and space efficiency, it is recommended to merge them into one patch.
++	Generally, within a snapshot, each node (file or directory) should have no more than one patch associated with it. For example, a patch replacing node 0 with node 1 and a patch replacing node 1 with node 2 can be merged into one patch. This happens when a node is modified multiple times. For time and space efficiency, it is recommended to merge them into one patch.
+ 	
+ \section{Enhancing Copy-on-Write and Deduplication}
+ 
+@@ -163,7 +166,7 @@
+ 
+ \subsection{Motivation}
+ 
+-    A classical copy-on-write snapshot system applies copy-on-write at block level. As shown in \fref{fig:classic_cow}, Unchanged blocks will not be copied to the snapshot.
++    A classical copy-on-write snapshot system applies copy-on-write at block level. As shown in \fref{fig:classic_cow}, unchanged blocks will not be copied to the snapshot.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -172,7 +175,7 @@
+ \label{fig:classic_cow}
+ \end{figure}
+ 
+-    However, in reality it is not always an ideal solution. In many use cases like insertion or deletion, only a few bytes is affected instead of a whole block. In these scenarios, all successor blocks will be rewriten. The classical snapshot system will make a copy of all successor blocks despite the fact that only very few bytes is changed. The following \fref{fig:issue_classic_cow} addresses this issue. A byte is inserted into the file at offset 8. In classical copy-on-write snapshot system, 2 successor blocks are treated as changed blocks and will be copied. However, as we can see, the data in those blocks did not change but moved one byte forward. There could be a better solution.
++    However, in reality it is not always an ideal solution. In many use cases like insertion or deletion, a write operation only affects a few bytes instead of a whole block. But a classic file system will rewrite all successor blocks in these scenarios. A classical snapshot system will make a copy of all successor blocks despite the fact that only very few bytes is changed. The following \fref{fig:issue_classic_cow} addresses this issue. In this example, a byte is inserted into the file at offset 8. In classical copy-on-write snapshot system, 2 successor blocks are treated as changed blocks and will be copied. However, actually, the data in those blocks did not change. They only moved one byte forward. In the figure we also demonstrates a potentially better approach.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -183,7 +186,9 @@
+  
+     To solve this problem, we have to let the file system be aware of the true intention of the end user. This is not straightforward because the POSIX standard uses only one file system call to handle all kinds of modification to a file. The only function of this file system call is to rewrite a part of a file.
+     
+-    If the user program intent to insert a byte right in the middle of the file, the file system will receive a set of write calls to rewrite all later blocks to move original data 1 byte forward. The same behavior can also be observed when user program trying to rewrite the later half of the file. It is hard for the file system to distinguish these two scenario. Although sometimes we can use patterns to guess the intention of an operation, like an insertion usually results in a write() call after a truncate() call, we believe it’s better not to depend on those patterns or make any assumption on how the user program will behave. Therefore our major challenge is to identify the true intention of an write operation, is it an insertion or a complete rewrite?
++    If the user program intend to insert a byte right in the middle of the file, the file system will receive a set of write calls to rewrite all later blocks in order to move original data 1 byte forward. The same behavior can also be observed when user program trying to rewrite the later half of the file. It is difficult for the file system to distinguish these two scenario. Access patterns can be used to guess the intention of an operation (i.e. an insertion usually results in a truncate call followed by a series of write() calls), but it is not an ideal solution as it depend on how the user program will behave. Therefore our major challenge is to identify the true intention of an write operation, whether should be an insertion or a complete rewrite.
++
++    In this section we will show how to accomplish this goal by using the rsync algorithm.
+ 
+ \begin{figure}[hbtp]
+ \centering
+@@ -194,27 +199,26 @@
+ 
+ \subsection{The rsync algorithm}
+ 
+-    As discussed in the previous section, we need to have a mechanism to compare the data to be written into the file and the original data to identify duplication. We use the rsync algorithm to accomplish this goal. It is originally designed for the efficient update of data over a high latency and low bandwidth link.
+-
+-    Compared to brute force search and string search algorithms, rsync algorithm is much faster in practise and requires less data exchange between the remote server and local machine. These features make it perfect for a distributed file system. Because both time consuming file system and a high bandwidth consumption file system will become a bottleneck in the operating system.
++    As discussed in the previous section, in order to identify duplication in a better way, we need to have a mechanism to compare the data to be written into the file and the original data. 
++    
++    The rsync algorithm is originally designed for the efficient update of data over a high latency and low bandwidth link. Compared to brute force search and string search algorithms, rsync algorithm is much faster in practice and requires less data exchange between the remote server and local machine. These features make it suitable for a distributed file system. Because both time consuming file system and a high bandwidth consumption file system will become a bottleneck in the operating system.
+ 
+-    The basic flow behind the rsync algorithm is to split the remote file into blocks of length $S$, calculate and send their rolling checksum to the local machine. The local machine will search through local file to find all blocks of length S bytes (at any offset, not just multiples of $S$) that matches the received rolling checksum. This can be done in a single pass very quickly since the rolling checksum only requires $O(1)$ time to compute checksum at offset k given the checksum at offset k-1.
++    The basic flow of the rsync algorithm is to split the remote file into blocks of length $S$, calculate their rolling checksum and then send their them to the local machine. The local machine will search through local file to find all blocks of length $S$ bytes (at any offset, not just multiples of $S$) that matches the received rolling checksum. This can be done in a single pass very quickly since the rolling checksum only requires $O(1)$ time to compute checksum at offset k given the checksum at offset $k-1$.
+ 
+ \subsection{Enhancing the space efficiency}
+ 
+     The Kabi File System uses the rsync algorithm to enhance the space efficiency of snapshots. It assumes that in most cases two different versions of the same file will share part of their data.
+ 
+-    In the Kabi File System, a section object in a file node contains not only the reference to the corresponding block, but also the rolling checksum of the block data. Before flushing the write buffer, the local machine will calculate the rolling checksum of data block at all possible offset. The file system will compare these rolling checksum with those fetched from remote. If a match is found, the file system will then double check their SHA-1 hash to confirm that is indeed a duplication.
++    In the Kabi File System, a section object in a file node contains not only the reference to the corresponding block, but also contains the rolling checksum of the block data. Before flushing the write buffer, the local machine will calculate the rolling checksum of data block at all possible offsets. The file system will compare these rolling checksum with those fetched from remote. If a match is found, the file system will then double check their SHA-1 hash to confirm that it is indeed a duplication.
+     
+-Once all data blocks have been examined, the local machine will send the id of duplicated block and all remaining data back to the remote server.
++    Once all data blocks have been examined, the local machine will send the id of duplicated blocks and all remaining data back to the remote server.
+ 
+ 
+ \begin{figure}[hbtp]
+ \centering
+-\includegraphics[width=0.8\textwidth]{Chapter-4/figs/fig26.png}
++\includegraphics[width=0.9\textwidth]{Chapter-4/figs/fig25.png}
+ \caption{Using rsync to find unchanged blocks}
+ \label{fig:rsync}
+ \end{figure}
+ 
+-
+-	During this process, only the computational overhead is the calculation and matching of rolling checksums. An important property of rolling checksum algorithm is that successive values can be computed in $O(1)$ time, thus ensures all rolling checksums can be calculated using $O(n)$ time. In exchange of this overhead, we may see a significantly decrease in network flow and remote storage when there is duplicate data in buffer.
++    During this process, the computational overhead is only the calculation and matching of rolling checksums. An important property of rolling checksum algorithm is that successive values can be computed in $O(1)$ time, thus ensuring that all rolling checksums can be calculated in $O(n)$ time. In contrast the benefits are a significantly decrease in network flow and remote storage when there is duplicate data in buffer.
+diff --git a/Makefile b/Makefile
+index 5279123..3f20db4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -11,7 +11,7 @@ $(NAME).pdf : $(NAME).tex $(NAME).bib front.tex $(CHAPTERS) ncsuthesis.cls optio
+ 	pdflatex $(NAME)
+ 
+ clean :
+-	rm $(AUX) $(INTERMEDIATES) $(NAME).pdf
++	rm -f $(AUX) $(INTERMEDIATES) $(NAME).pdf
+ 
+ view :
+ 	evince $(NAME).pdf &
+diff --git a/front.tex b/front.tex
+index 272c8c0..ade4f61 100644
+--- a/front.tex
++++ b/front.tex
+@@ -1,7 +1,7 @@
+ %% ------------------------------ Abstract ---------------------------------- %%
+ \begin{abstract}
+ 
+-\lipsum[1-6]
++%\lipsum[1-6]
+ 
+ 
+ \end{abstract}
+diff --git a/thesis.tex b/thesis.tex
+index 72eeecd..e3ec9ef 100644
+--- a/thesis.tex
++++ b/thesis.tex
+@@ -107,6 +107,7 @@ a Distributed Snapshot File System}
+ \newcommand{\eref}[1]{Eq.~\ref{#1}}
+ \newcommand{\fref}[1]{Figure~\ref{#1}}
+ \newcommand{\tref}[1]{Table~\ref{#1}}
++\newcommand{\cref}[1]{Chapter~\ref{#1}}
+ 
+ %%---------------------------------------------------------------------------%%
+ \begin{document}
