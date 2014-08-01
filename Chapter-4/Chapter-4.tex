@@ -4,8 +4,6 @@
 
     In a snapshot system, most snapshots do not keep a copy of the entire file system but instead log the changes since the last snapshot. The snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on a file node or a directory node since the last snapshot.
 
-    (ADD LONG TERM IMPACT)
-
 \begin{figure}[hbtp]
 \centering
 \includegraphics[width=0.8\textwidth]{Chapter-4/figs/fig23.png}
@@ -24,7 +22,7 @@
 \label{fig:snapfs_approach}
 \end{figure}
 
-    Snapshots in the Kabi File System are represented by snapshot node and forms an up-tree. The following \fref{fig:snap_tree_example} shows an example of the snapshot tree.
+    Snapshots in the Kabi File System are represented by snapshot node and forms an up-tree (EXPLAIN). The following \fref{fig:snap_tree_example} shows an example of the snapshot tree.
 
 \begin{figure}[hbtp]
 \centering
@@ -222,3 +220,7 @@
 \end{figure}
 
     During this process, the computational overhead is only the calculation and matching of rolling checksums. An important property of rolling checksum algorithm is that successive values can be computed in $O(1)$ time, thus ensuring that all rolling checksums can be calculated in $O(n)$ time. In contrast the benefits are a significantly decrease in network flow and remote storage when there is duplicate data in buffer.
+
+\section{Conclusion}
+
+   In this chapter, we present the basic idea of this snapshot system and discuessed some implementation details of the snapshot subsystem in Kabi File System. We demonstrated our efforts to make the snapshot system efficient in space usage. We also introduced the rsync algorithm to improve the snapshot system and the network performance.
