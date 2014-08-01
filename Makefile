@@ -1,6 +1,6 @@
-CHAPTERS=Chapter-*/Chapter-*.tex  Appendix-*/Appendix-*.tex
+CHAPTERS=Chapter-*/Chapter-*.tex
 NAME=thesis
-AUX=$(NAME).aux front.aux Chapter-*/*.aux Appendix-*/*.aux optional.aux
+AUX=$(NAME).aux front.aux Chapter-*/*.aux optional.aux
 INTERMEDIATES=$(NAME).bbl $(NAME).blg $(NAME).lof $(NAME).lot \
               $(NAME).log $(NAME).toc 
 

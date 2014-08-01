@@ -31,6 +31,6 @@
     
     Some early verions of ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into ext4 main branch. This makes ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for ext4.
 
-\section{rsync}
+\section{The Rsync Algorithm}
     
     The rsync algorithm is used in the rsync utility software and protocol for unix-like system. This algorithm is invented by Andrew Tridgell and he described the algorithm as "for the efficient update of data over a high latency and low bandwidth link". In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.

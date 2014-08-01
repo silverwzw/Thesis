@@ -1,0 +1,136 @@
+\chapter{Snapshot Performence}
+\label{chap:perform}
+
+    The space occupied by a snapshot is an important measurement of how efficient the snapshot system is. In this chapter, we will focus on the actual space occupied by the snapshot using Kabi file system.
+    
+    A section that is not referring to a whole block like the third section in \fref{fig:rsync} will be named ``tuncated section'' here after.
+
+    To monitor the space occupied by a snapshot, we will do experiments with the following steps:
+
+\begin{enumerate}
+	\item Initialize the file system with block size $B$.
+
+	\item Generate a file with size $F$.
+
+	\item Fill the file with sections and let a certain proportion ($P$) of the sections be truncated.
+
+	\item Take a snaphot of the file.
+	
+	\item Insertion or overwrite random number of byte to the file at random offset. The offset parameter will be uniformly distributed between $0$ and $F$. The number of bytes being overwritten will be uniformly distributed from $1$ to largest possible value (i.e., until the end of the file).
+
+	\item Take another snapshot and calculate the total space occupied by the second snapshot.
+
+	\item Repeat above steps for 10,000 times to collect data (average value).
+\end{enumerate}
+
+    \tref{tab:sample_result} shows two sample result of such experiment. The first three columns in the table are the parameters of the experiment. The later four columns are the data gathered from the experiment. For example, the column labeled ``overwrite, classic'' means correspnding write operation is an overwrite and the algrithm used by snapshot system is classic Copy-on-Write.
+
+    The first row in \tref{tab:sample_result} represents a experiment on a Kabi file system with 128 byte block size. The target file is a 12,608-byte file with 3\% sections truncated. The result shows that on average it takes a classic Copy-on-write snapshot system 3,288 bytes to take a snapshot after an overwrite operation. It takes 103 bytes more for a Kabi File System to take a snapshot under the same condition. When it comes to insertion, on average it only takes the Kabi File System 3,256 bytes to take a snapshot after an insertion while it costs almost 2 times more space for a classic copy-on-write snapshot system to do so.
+
+    The result is intuitive. Because there's not much duplicated data in the overwrite scenario, storing the SHA hash, rolling checksum are overheads that makes the performance of Kabi File System a little lower than the classic approach. But in the insertion scenrio, lots of duplicated data can be found. The rsync algorithm is able to find the duplications but the classic approach is not able to do anything to that. So the Kabi File System gets a better perfromance this time.
+    
+    The second row in \tref{tab:sample_result} represents another experiment with file size equal to 126,080 bytes. It is obvious that when the file size becomes larger, the number space used to take a snapshot also become larger. But this makes comparasion between two experiments of different file size not so obvious. We introduce the normalized table, \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
+
+\begin{lscape} 
+\begin{table}
+\caption{Sample result of the experiment}
+\label{tab:sample_result}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\hline
+block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
+\hline
+128 & 12608 & 3\% & 3288 & 3391 & 9530 & 3256 \\
+\hline
+128 & 126080 & 3\% & 31722 & 32205 & 94867 & 32557 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}
+\caption{Normalized data}
+\label{tab:norm}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\hline
+block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
+\hline
+128 & 12608 & 3\% & 0.2607 & 0.2689 & 0.7558 & 0.2582 \\
+\hline
+128 & 126080 & 3\% & 0.2516 & 0.2554 & 0.7524 & 0.2582 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\end{lscape}
+
+\subsection{Block Size and File Size}
+\begin{lscape} 
+\begin{table}
+\caption{Sample result of the experiment}
+\label{tab:sample_result}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\hline
+block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
+\hline
+128 & 704 & 17\% & 0.4531 & 0.5127 & 0.8338 & 0.2983 \\
+\hline
+128 & 1408 & 17\% & 0.3514 & 0.3934 & 0.7933 & 0.2962 \\
+\hline
+128 & 2112 & 17\% & 0.3129 & 0.3532 & 0.7789 & 0.2964 \\
+\hline
+128 & 3520 & 17\% & 0.2884 & 0.3213 & 0.7702 & 0.2972 \\
+\hline
+128 & 7040 & 17\% & 0.2681 & 0.2949 & 0.7589 & 0.2955 \\
+\hline
+128 & 14008 & 17\% & 0.2593 & 0.2828 & 0.7545 & 0.2957 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\end{lscape}
+\subsection{Truncate Ratio}
+\begin{lscape} 
+\begin{table}
+\caption{Sample result of the experiment}
+\label{tab:sample_result}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{experiment parameters} & \multicolumn{4}{c|}{write operation and algorithm used} \\
+\hline
+block size & file size & truncated section & overwrite, classic & overwrite, Kabi & insert, classic & insert, Kabi\\
+\hline
+128 & 12800 & 0\% & 0.2596 & 0.2645 & 0.7547 & 0.2495 \\
+\hline
+128 & 12800 & 10\% & 0.2600 & 0.2752 & 0.7558 & 0.2750 \\
+\hline
+128 & 12800 & 18\% & 0.2599 & 0.2856 & 0.7557 & 0.3002 \\
+\hline
+128 & 12800 & 33\% & 0.2606 & 0.3071 & 0.7569 & 0.3513 \\
+\hline
+128 & 12800 & 46\% & 0.2616 & 0.3290 & 0.7579 & 0.4026 \\
+\hline
+128 & 12800 & 57\% & 0.2616 & 0.3500 & 0.7583 & 0.4532 \\
+\hline
+128 & 12800 & 71\% & 0.2596 & 0.3792 & 0.7530 & 0.5252 \\
+\hline
+128 & 12800 & 82\% & 0.2579 & 0.4089 & 0.7505 & 0.5980 \\
+\hline
+128 & 12800 & 91\% & 0.2593 & 0.4417 & 0.7536 & 0.6758 \\
+\hline
+128 & 12800 & 100\% & 0.2601 & 0.4737 & 0.7561 & 0.7536 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\end{lscape}
+\subsection{Conclusion}
