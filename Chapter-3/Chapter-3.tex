@@ -190,7 +190,7 @@ id & id of the file or subdirectory\\
 
     The path-node cache is a move-to-front dictionary (CITE) which maps a path string to a directory node or a file node. The cache has a fixed capacity and assumes temporal locality in the access pattern. It uses move-to-front algorithm to keep frequently accessed hot item in the cache and remove those cold items that have not been accessed for long. The cache also assumes spatial locality: when accessing a file or directory, not only the file or directory itself is cached but all directories on the path, i.e., its parent and ancestor directories, also go into the cache. Thus, when touching contents under the same directory later, the file system can directly find its parent node in cache.
 
-    Once the file node is retrieved, reading the file is straight forward. The file system will traverse the data section list to find the ID of block node associated with the read call and calculate the begin and end index of the bytes of the block content that will be copied to read buffer. After that the file system will query MongoDB for block nodes and copy requested data to buffer.
+    Once the file node is retrieved, reading the file become straight forward. The file system will traverse the section object array to find the ID of block node associated with the read call. It will then calculate the begin and end index of the bytes of the block content that will be copied to read buffer. At last the file system will query MongoDB for block nodes and copy requested data to buffer.
 
 \subsection{Write operations}
 
@@ -201,11 +201,11 @@ id & id of the file or subdirectory\\
 \label{fig:cow}
 \end{figure}
 
-    Write operations involve FUSE calls named write(), chmod(), chown(), mkdir(), unlink() and rmdir(). The write() call is the most important file system call that writes data into a file from some offset. Other functions change the meta information of a directory or file.
+    The Kabi File System write files on file close or explicit flush. It uses write() call to write data into a file from some offset. Other write calls like chmod(), chown(), mkdir(), unlink() and rmdir() change the meta information of a directory or file.
 
     Block nodes are designed to be immutable. File nodes and directory nodes use copy-on-write strategy when an overwrite is requested. So, when an overwrite to file node or directory node is requested, the file system will make a local copy of the node and apply the modification to this local copy. The file system will then upload that copy to remote and attach it to its parent directory replacing the original node as shown in the \fref{fig:cow}. In this way, the old version of the node is saved for snapshot and read operation will not accidentally read in a node that is in an incomplete state. As shown in \fref{fig:cow}, during this process, we use addNode2DB() operation to add a new node and use the patch() method to replace the old version with this new node.
 
-	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. The flush process is atomic, guaranteed by MongoDB. 
+	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. (CITE) The flush process is atomic, guaranteed by MongoDB. 
 
 \begin{figure}[hbtp]
 \centering
@@ -214,15 +214,15 @@ id & id of the file or subdirectory\\
 \label{fig:buffer}
 \end{figure}
 
-	During a flush, a data section may be unaffected, partly overwritten or entirely overwritten. Block node will be detached from the file if its representing data section has been entirely overwritten. The data section object will be truncated if this section is partly overwritten. The \fref{fig:buffer} shows the routine to write a file.
+    During a flush, a data section (section object) may be unaffected, partly overwritten or entirely overwritten. Block node will be detached from the file if its corresponding data section has been entirely overwritten. The data section object will be truncated if this section is partly overwritten. If a section is truncated, the start offset and end offset will be updated to reflect the change while the block node remain the same. The \fref{fig:buffer} shows the routine to write a file.
 
     Compared to the traditional copy-on-write snapshot file system which copies and overwrites the entire block whenever there is a byte change, this design can make use of the old block. Because the old block will be keeped for snapshot, reusing it in current view may save some storage.
 
-    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA id. There're many cases where this overhead is worthy. In the extreme case, overwriting 2 bytes on the boundary of two block results in two new blocks in traditional copy-on-write design while only result in a 2-byte block in our design. With a block size of 2,048 bytes and a file size of 20,480 byte. The saving in this case is 3798 bytes.
+    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA id. There're many cases where this overhead is worthy. In the extreme case, if we overwrite 2 bytes on the boundary of two blocks right after a snapshot is taken, two new blocks will be created in classic copy-on-write snapshot system but only a 2-byte block will be added in our design. With a block size of 2,048 bytes and a file size of 20,480 byte, the saving in this case is 3,798 bytes.
 
 \subsection{Deduplication}
 
-    In a copy-on-write file system, there is rarely an in-place modification to data. In most cases, making a change to the file system means creation of new nodes. Creating a new block node is an expensive operation as it requires all data transferred to remote and a permanent reduction of the available space on the storage media.
+    In a copy-on-write file system, new modifications to data blocks that are referenced by previous snapshots cannot be an in-place modification. In those cases, making a change to the file system means creation of new nodes. Creating a new block node is an expensive operation as it requires all data transferred to remote and storage space on remote.
     
     We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
 
