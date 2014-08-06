@@ -1,8 +1,11 @@
 \chapter{Snapshot}
 \label{chap:snapshot}
-    One of the major features of Kabi File System is writable copy-on-write snapshot. Snapshot nodes are designed as the basic components of Kabi File System. The ``current'' status of the file system is also treated as a writable snapshot. This lightweight snapshot system focuses on reducing the storage space occupied by a snapshot.
 
-    In a snapshot system, most snapshots do not keep a copy of the entire file system but instead log the changes since the last snapshot. The snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called root snapshot which references the entire file system. All other snapshots contain a reference to another snapshot and list of patch nodes. Each patch node in the list reflects a change or a series of changes on a file node or a directory node since the last snapshot.
+    One of the major features in Kabi File System is the writable copy-on-write snapshot. A snapshot is a point-in-time copy of a defined collection of data.\cite{snapshot_def} A read only snapshot is an immutable copy of the file system data at a time spot, while a writable snapshot can be considered as a writable fork of such copy. Snapshot nodes are designed as the basic components of Kabi File System. The ``current'' status of the file system is also treated as a writable snapshot. This snapshot system focuses on reducing the storage space occupied by a snapshot.
+
+    According to the Storage Networking Industry Association, three classic snapshot approachs include split-mirror, changed block, and concurrent.\cite{snapshot_types} The split-mirror approach copies every byte from source to snapshot. The copy process is time consuming hence it usually requires planning in advance. The changed block approach apply copy-on-write on the snapshot. The concurrent approach redirects IO request to different storage spaces associated with different snapshots. Instead of making a copy and overwrite the copy, write IO request will be redirected a seperate storage space. While a read IO request will be redirected depends on whether the data has been changed since last snapshot.
+
+    Our snapshot system uses a stratergy which is a mixture of copy-on-write and redirect IO. It uses enhanced copy-on-write stratergy on actual data and Redirect IO stratergy on meta data. In our snapshot system, most snapshots do not keep a copy of the entire file system but instead log the changes since the last snapshot. Such that the snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a unique snapshot called head snapshot which contains contents of the entire file system at a particular time. All other snapshots contain a reference to another snapshot and an array of patch objects. Each patch object in the array reflects a series of changes on a single file node or a single directory node since the last snapshot.
 
 \begin{figure}[hbtp]
 \centering
@@ -13,7 +16,7 @@
 
 \section{The Snapshot Tree}
 
-	The snapshot system in Kabi File System uses a lightweight approach based on patches. Some other snapshot file system like SnapFS and ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. Compared to that approach, the patch based mechanism is not only more efficient in snapshot read access but also supports tree structured snapshots and writable snapshots.
+	The snapshot system in Kabi File System uses a approach based on patches. Some other snapshot file system like SnapFS and ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. Compared to that approach, the patch based mechanism is not only more space efficient in snapshot read access but also supports tree structured snapshots and writable snapshots.
 
 \begin{figure}[hbtp]
 \centering
@@ -31,13 +34,13 @@
 \label{fig:snap_tree_example}
 \end{figure}
 
-    At initial state, the file system contains a default writeable snapshot node (node \#0 in \fref{fig:snap_tree_example}) representing the current state of the file system. This unique snapshot called the root snapshot is the only snapshot node that does not reference other snapshot. For initial state, writes to the file system go directly into the root snapshot.
+    Initially, the file system contains a default writeable snapshot node (node 0 in \fref{fig:snap_tree_example}) representing the current state of the file system. This unique snapshot called the head snapshot is the only snapshot node that does not reference other snapshot. For initial state, writes to the file system go directly into the head snapshot.
     
-    After a snapshot is taken, a new snapshot node (node \#1) is created referring to the root snapshot node. Subsequent write operations will not only write data into the root snapshot but also submit patches to all snapshot connected to root snapshot, so as to reflect the difference between snapshot node \#1 and its referencing node \#0.
+    After a snapshot is taken, a new snapshot node (node 1) is created referring to the head snapshot node. Subsequent write operations will not only write data into the head snapshot but also submit patches to all snapshot connected to head snapshot, so as to reflect the difference between snapshot node 1 and its referencing node 0.
 
-    Branching a snapshot is equivalent to creating a new snapshot node referring the snapshot being forked. As shown in \fref{fig:snap_tree_example}, node \#3 is created and connected to snapshot node \#2 in order to branch the file system based on snapshot \#2.
+    Branching a snapshot is equivalent to creating a new snapshot node referring the snapshot being forked. As shown in \fref{fig:snap_tree_example}, node 3 is created and connected to snapshot node 2 in order to branch the file system based on snapshot 2.
 
-    In the snapshot tree, the main branch is the branch that contains root snapshot node. All other branches are side branches. In a branch, the latest snapshot node represents the “current status” of the file system of this branch. Other snapshot nodes forms the historical status of their corresponding branch. \fref{fig:branches} shows the idea of branch.
+    In the snapshot tree, the main branch is the branch that contains head snapshot node. All other branches are side branches. In a branch, the latest snapshot node represents the “current status” of the file system of this branch. Other snapshot nodes forms the historical status of their corresponding branch. \fref{fig:branches} shows the idea of branch.
 
 \begin{figure}[hbtp]
 \centering
@@ -46,15 +49,15 @@
 \label{fig:branches}
 \end{figure}
 
-\section{Nodes}
+\section{Snapsho Nodes and Patch Object}
 
-    As mentioned in previous section, there are two types of snapshot node in this file system, namely the root snapshot node and the non-root snapshot node.
+    As mentioned in previous section, there are two types of snapshot node in this file system, namely the head snapshot node and the non-head snapshot node.
 
-    The root snapshot is unique in the file system. It is the root of the up-tree (CITE HERE OR EXPLAIN) and does not reference any other snapshots. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to the root snapshot node is intuitive and faster than any other snapshot, so the root snapshot is recommended to represent the most frequently accessed snapshot or the current status of the file system.
+    The head snapshot is unique in the file system. It is the root of the up-tree (CITE HERE OR EXPLAIN) and does not reference any other snapshots. Instead it stores the content of the entire file system by referencing the directory node of the root directory. In this way, read access to the head snapshot node is intuitive and faster than any other snapshot, so the head snapshot is recommended to represent the most frequently accessed snapshot or the current status of the file system.
 
-    On the other hand, a non-root snapshot does not have its own root directory but needs to keep a reference to another snapshot node and a list of patch nodes. The list represent the difference in content between this non-root snapshot and the referenced snapshot. Reading a non-root snapshot will first read the file system content in referenced snapshot and then lookup the patch list to find out if the content is changed in this snapshot. To write data, the non-root snapshot uploads the changed nodes into the database, build a patch node with both ids, and submit the patch to remote. The submition is atomic and ensures the file system will not be left in a incomplete state. It is important that not all non-root snapshots are writable. Once the non-root snapshot is referenced by some other snapshot nodes, it becomes immutable.
+    On the other hand, a non-head snapshot does not have its own root directory but needs to keep a reference to another snapshot node and a list of patch objects. The list represent the difference in content between this non-head snapshot and the referenced snapshot. Reading a non-head snapshot will first read the file system content in referenced snapshot and then lookup the patch list to find out if the content is changed in this snapshot. To write data, the non-head snapshot uploads the changed nodes into the database, build a patch object with both ids, and submit the patch to remote. The submition is atomic and ensures the file system will not be left in a incomplete state. It is important that not all non-head snapshots are writable. Once the non-head snapshot is referenced by some other snapshot nodes, it becomes immutable.
 
-    \fref{fig:root_and_nonroot} shows the structure of a root snapshot node (right) and the structure of a non-root snapshot (left).
+    \fref{fig:root_and_nonroot} shows the structure of a head snapshot node (right) and the structure of a non-head snapshot (left).
     
 \begin{figure}[hbtp]
 \centering
@@ -63,7 +66,7 @@
 \label{fig:root_and_nonroot}
 \end{figure}
 
-    A patch node reflects a single modification or a series of changes to one node. The node can be either file node or one node. It references a pair of file nodes or directory nodes. The two nodes referred are the target node (original version) and its replacement (changed version).
+    A patch object reflects a single modification or a series of changes to one node. The node can be either file node or one node. It references a pair of file nodes or directory nodes. The two nodes referred are the target node (original version) and its replacement (changed version).
 
     \fref{fig:patches} demonstrates the way the patch systemworks. Snapshot 1 and 2 demonstrates how a directory changes between snapshots. The directory that is represented by node $d_2$ in snapshot 2 is now replaced by directory node $d_1$ in snapshot 1. In snapshot 2, the directory has a new subdirectory but the file under that directory remains unchanged. Hence the target node (node $d_2$) and replacement node (node $d_1$) have a reference to =the same file node but the target node $d_2$ has one more reference to a directory node. In the example of snapshot ($a$) and snapshot ($b$), a file changes in both snapshot, its original version is $f_1$, the intermedia version in snapshot ($b$) is $f_2$ and final version is $f_3$ in snapshot ($a$). In snapshot $\alpha$ and snapshot $\beta$, file $f_3$ is replaced by $f_2$ in snapshot ($\beta$) and replaced by $f_1$ in snapshot ($\alpha$).  
 
@@ -80,7 +83,7 @@
 
 \subsection{Read operations}
 
-    When reading a file or a directory in the non-root snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot \#1 shown in figure below, the file system will first read in ``/'' directory in root snapshot which is node \#3) . Then it transverses all involved snapshots (\#1 and \#2) to see if there's a patch whose target node is node \#3. Since no such patch is available, this means node \#3 is the ``/'' directory node of all snapshot node (\#1, \#2 and \#3). Then the file system will look for “a” directory under node \#3 and corresponding patches. In this example, there is a directory (node \#9) with display name “a” under node \#3 but there is also a patch to node \#9 in snapshot \#2. That means node \#5 is the ``/a'' directory node of snapshot \#0 while node \#6 is the directory node for snapshot \#1 and snapshot \#2. Follow the same procedure, we will find node \#8 is the ``/a/d.txt'' node in snapshot \#2 but for snapshot \#1 ``/a/d.txt'' represented by node \#6.
+    When reading a file or a directory in the non-head snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot 1 shown in figure below, the file system will first read in ``/'' directory in head snapshot which is node 3) . Then it transverses all involved snapshots (1 and 2) to see if there's a patch whose target node is node 3. Since no such patch is available, this means node 3 is the ``/'' directory node of all snapshot node (1, 2 and 3). Then the file system will look for “a” directory under node 3 and corresponding patches. In this example, there is a directory (node 9) with display name “a” under node 3 but there is also a patch to node 9 in snapshot 2. That means node 5 is the ``/a'' directory node of snapshot 0 while node 6 is the directory node for snapshot 1 and snapshot 2. Follow the same procedure, we will find node 8 is the ``/a/d.txt'' node in snapshot 2 but for snapshot 1 ``/a/d.txt'' represented by node 6.
 
 \begin{figure}[hbtp]
 \centering
@@ -89,7 +92,7 @@
 \label{fig:read_patches}
 \end{figure}
 
-    As one can see, read operations rely on the patch lookup operation. To avoid query and traverse all involved snapshot and patch nodes on every read operation, a local patch list is built and stored as hashtable in memory when a non-root snapshot node is mounted. The local patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot \#3, a local patch list that contains all effective patches in snapshot \#3 and \#2 is created.
+    As one can see, read operations rely on the patch lookup operation. To avoid query and traverse all involved snapshot and patch objects on every read operation, a local patch list is built and stored as hashtable in memory when a non-head snapshot node is mounted. The local patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot 3, a local patch list that contains all effective patches in snapshot 3 and 2 is created.
 
 \begin{figure}[hbtp]
 \centering
@@ -98,7 +101,7 @@
 \label{fig:combine_patch_list}
 \end{figure}
 
-    Not all patches in patch lists will be combined into a local patch list. Some patches are mergeable and some are duplicated. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node $f_2$ of a patch is also the target node of another patch, these two patch node can be merged into one local patch. Another example is snapshot ($\alpha$) and ($\beta$), the two patch shown in the figure have the same target node $f_3$. When snapshot ($\alpha$) is mounted, the duplicated patch in snapshot ($\beta$) will be read in because snapshot ($\beta$) is referenced by snapshot ($\alpha$). The duplicated patch will then be discard at local machine.
+    Not all patches in patch lists will be combined into a local patch list. Some patches are mergeable and some are duplicated. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node $f_2$ of a patch is also the target node of another patch, these two patch object can be merged into one local patch. Another example is snapshot ($\alpha$) and ($\beta$), the two patch shown in the figure have the same target node $f_3$. When snapshot ($\alpha$) is mounted, the duplicated patch in snapshot ($\beta$) will be read in because snapshot ($\beta$) is referenced by snapshot ($\alpha$). The duplicated patch will then be discard at local machine.
 
 \begin{figure}[hbtp]
 \centering
@@ -109,7 +112,7 @@
 
 \subsection{Write operations}
 
-	\fref{fig:create_snapshots} below briefly demonstrates how patch node and snapshots work with write operations. This example has 3 snapshots. node \#0 is the root snapshot node representing the current status of the main branch. Snapshot node \#2 represents the initial status and node \#1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
+	\fref{fig:create_snapshots} below briefly demonstrates how patch object and snapshots work with write operations. This example has 3 snapshots. node 0 is the head snapshot node representing the current status of the main branch. Snapshot node 2 represents the initial status and node 1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
 
 \begin{figure}[hbtp]
 \centering
@@ -120,7 +123,7 @@
 
     \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branchs.
 
-    In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the root snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the root snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current status of the main branch is still the root snapshot.
+    In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the head snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the head snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current status of the main branch is still the head snapshot.
 
 \begin{figure}[hbtp]
 \centering
@@ -138,7 +141,7 @@
 \label{fig:take_snapshot_nonroot}
 \end{figure}
     
-    When writing a non-root leaf snapshot, the Kabi File System will submit new patches to that non-root snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the root snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the root snapshot. In order to keep its previous version X in snapshot \#2, a ``reverse'' patch node (Y-to-X) will be submitted to revert node Y back to its original version X. In this way, the root snapshot will have the new version Y while all other snapshots keep the old version X. In the second example, the file system is trying to replace node X with its new version Y in snapshot \#3. Compared to the first example, the file system now can simply submit a X-to-Y patch to snapshot \#3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
+    When writing a non-root leaf snapshot, the Kabi File System will submit new patches to that non-head snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the head snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the head snapshot. In order to keep its previous version X in snapshot 2, a ``reverse'' patch object (Y-to-X) will be submitted to revert node Y back to its original version X. In this way, the head snapshot will have the new version Y while all other snapshots keep the old version X. In the second example, the file system is trying to replace node X with its new version Y in snapshot 3. Compared to the first example, the file system now can simply submit a X-to-Y patch to snapshot 3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
 
 \begin{figure}[hbtp]
 \centering
@@ -147,7 +150,7 @@
 \label{fig:write_snapshot_node}
 \end{figure}
 
-    To create a branch based on the root snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the root snapshot directly. This is because a write operation to root snapshot will submit patches to all snapshot nodes connected to root snapshot node. Hence we wish to limit the number of snapshots connected to the root snapshot. If we fork the root snapshot directly then there will be multiple snapshot node connected on to the root snapshot node. \fref{fig:dummy_node} demonstrates this issue:
+    To create a branch based on the head snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the head snapshot directly. This is because a write operation to head snapshot will submit patches to all snapshot nodes connected to head snapshot node. Hence we wish to limit the number of snapshots connected to the head snapshot. If we fork the head snapshot directly then there will be multiple snapshot node connected on to the head snapshot node. \fref{fig:dummy_node} demonstrates this issue:
 
 \begin{figure}[hbtp]
 \centering

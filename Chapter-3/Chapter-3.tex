@@ -222,7 +222,7 @@ id & id of the file or subdirectory\\
 
 \subsection{Deduplication}
 
-    In a copy-on-write file system, new modifications to data blocks that are referenced by previous snapshots cannot be an in-place modification. In those cases, making a change to the file system means creation of new nodes. Creating a new block node is an expensive operation as it requires all data transferred to remote and storage space on remote.
+    In a copy-on-write file system, block nodes are immutable thus there's no in-place modification to block nodes. Therefore, in most cases,  making a change to the file system means creation of new block node. This is an expensive operation as it requires storage space on remote and all data must be transferred to remote.
     
     We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
 
