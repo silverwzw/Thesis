@@ -1,207 +1,84 @@
 \chapter{Performance}
 \label{chap:perform}
 
-    As an important resource management component, the perforamnce of a file system has a large influence on the operating system.In this chapter, we will evaluate the performance of the system. We will evaluate the performance of the file system in terms of time complexity and the performance of snapshot system in terms of space efficiency.
+    As an important resource management component in operating system, the perforamnce of a file system has a large influence on the operating system. In this chapter, we will evaluate the performance of the design. We will be focusing on the time efficiency of the file system and the space efficiency of the snapshot system.
 
 \section{File System Benchmark}
 
-In this section we will evaluate the performance of the Kabi File System using the file system benchmark tool ``postmark''\cite{postmark} 
+    In this section, the performance of the Kabi File System is evaluated using the file system benchmark tool ``postmark''\cite{postmark}. All tests are using the default benchmark settings of postmark which include 500 stand alone file creation, 264 file creation mixed with transactions, 243 file read, 257 file append and 764 file deletion.
 
-===========native - continues==============
+    We compare our proof-of-concept implemenation with other popular file systems. In our implemenation, we use the FUSE-JNA (\url{http://fusejna.net/}) as the Java language binding for FUSE. FUSE-JNA is designed for fast development of concept file system whereas its performance is not very satisfied. FUSE-JNA creates Java thread for every file system call, uses JNA to communicate with the fuse library, and switch between kernel space and user space very frequently. Hence the overhead of using FUSE-JNA is significant. In order to elimiate such overhead in comparison, the file system performance is compared between Kabi File System and FUSE-JNA warpped Ext4/NFS.
 
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	59 seconds total
-	5 seconds of transactions (100 per second)
+    Two sets of tests are performed: the local test set and the remote test set. In the local test set, Kabi File System client and the backend MongoDB are deployed on the same machine. The performance of Kabi File System is compared to a FUSE-JNA wrapped Ext4 file system. The testing environment is 64-bit Ubuntu 12.04LTS with one 2.4GHz 6MB cache Intel i7-2760QM CPU, in total 24GB DDR3 1333MHz RAM, and a 7200 rpm SATA hard disk. In the remote test set, Kabi File System client and the backend MongoDB are deployed on different machines. The remote test uses Amazon AWS service to build the testing environment. Both machines use Amazon EC2 t2.micro instance with one 8GB EBS volumn and connect to a 10 Gbps local area network. The operating system is standrad 64-bit Ubuntu image provided by Amazon AWS. The remote test compares Kabi File System with a FUSE-JNA wrapped NFS. 
 
-Files:
-	5249 created (88 per second)
-		Creation alone: 5000 files (96 per second)
-		Mixed with transactions: 249 files (49 per second)
-	268 read (53 per second)
-	232 appended (46 per second)
-	5249 deleted (88 per second)
-		Deletion alone: 4998 files (2499 per second)
-		Mixed with transactions: 251 files (50 per second)
+    The file system test results are shown in \tref{tab:fs_performance}. The result shows that although as a local file system the Kabi File System is not as good as Ext4, but as a dsitributed file system it is comparable to NFS.
 
-Data:
-	1.40 megabytes read (24.30 kilobytes per second)
-	26.65 megabytes written (462.53 kilobytes per second)
+\begin{lscape} 
+\begin{table}
+\caption{File System Performance Test}
+\label{tab:fs_performance}
+\begin{center}
+\begin{threeparttable}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{2}{|c|}{Scenario} & \multicolumn{5}{c|}{Tests\tnote{1}} \\
+\hline
+File System & Test Set & Creation (stand alone) & Creation (with transaction) & File Read & File Append & File Delete\\
+\hline
+Kabi & local & 83 & 33 & 30 & 32 & 47 \\
+\hline
+Ext4\tnote{2}& local & 96 & 49 & 53 & 46 & 88 \\
+\hline
+Kabi & remote & 55 & 29 & 27 & 28 & 36 \\
+\hline
+NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\item[1] Test results are in ``operation per second'', the larger the better.
+\item[2] The file system is wrapped with FUSE-JNA.
+\item[3] The client uses NFS to mount a directory on remote Ext4 partition.
+\end{tablenotes}
+\end{threeparttable}
+\end{center}
+\end{table}
+\end{lscape} 
 
-=========local Kabi - continues===========
+\section {Efficiency of Snapshot and Deduplication}
 
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	256 seconds total
-	27 seconds of transactions (18 per second)
+    This section will focus on the space efficiency of the snapshot system. We are going to measure the space efficiency of the snapshot system by estimating the average space cost of a snapshot of a single file. We will study the infulence of three factors against the space efficiency. The first factor is the block size of the file system. The second factor is the size of file. The last factor is the propoirtion of ``tuncated section'' in the file. A ``tuncated section'' referes to those section that are not referring to a whole block like the the thrid section in \fref{fig:rsync} or the second and thrid section in \fref{fig:file_and_section}.
 
-Files:
-	5249 created (20 per second)
-		Creation alone: 5000 files (34 per second)
-		Mixed with transactions: 249 files (9 per second)
-	268 read (9 per second)
-	232 appended (8 per second)
-	5249 deleted (20 per second)
-		Deletion alone: 4998 files (58 per second)
-		Mixed with transactions: 251 files (9 per second)
-
-Data:
-	1.40 megabytes read (5.60 kilobytes per second)
-	26.65 megabytes written (106.60 kilobytes per second)
-
-
-=======local Kabi - small ===============
-
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	16 seconds total
-	8 seconds of transactions (62 per second)
-
-Files:
-	764 created (47 per second)
-		Creation alone: 500 files (83 per second)
-		Mixed with transactions: 264 files (33 per second)
-	243 read (30 per second)
-	257 appended (32 per second)
-	764 deleted (47 per second)
-		Deletion alone: 528 files (264 per second)
-		Mixed with transactions: 236 files (29 per second)
-
-Data:
-	1.36 megabytes read (87.33 kilobytes per second)
-	4.45 megabytes written (284.55 kilobytes per second)
-
-=======WLAN Kabi========================
-Time:
-	676 seconds total
-	347 seconds of transactions (1 per second)
-
-Files:
-	764 created (1 per second)
-		Creation alone: 500 files (2 per second)
-		Mixed with transactions: 264 files (0 per second)
-	243 read (0 per second)
-	257 appended (0 per second)
-	764 deleted (1 per second)
-		Deletion alone: 528 files (4 per second)
-		Mixed with transactions: 236 files (0 per second)
-
-Data:
-	1.36 megabytes read (2.07 kilobytes per second)
-	4.45 megabytes written (6.73 kilobytes per second)
-
-=====WLAN NFS==========================
-
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	375 seconds total
-	172 seconds of transactions (2 per second)
-
-Files:
-	764 created (2 per second)
-		Creation alone: 500 files (2 per second)
-		Mixed with transactions: 264 files (1 per second)
-	243 read (1 per second)
-	257 appended (1 per second)
-	764 deleted (2 per second)
-		Deletion alone: 528 files (15 per second)
-		Mixed with transactions: 236 files (1 per second)
-
-Data:
-	1.36 megabytes read (3.73 kilobytes per second)
-	4.45 megabytes written (12.14 kilobytes per second)
-
-=====LAN Kabi=========================
-
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	21 seconds total
-	9 seconds of transactions (55 per second)
-
-Files:
-	764 created (36 per second)
-		Creation alone: 500 files (55 per second)
-		Mixed with transactions: 264 files (29 per second)
-	243 read (27 per second)
-	257 appended (28 per second)
-	764 deleted (36 per second)
-		Deletion alone: 528 files (176 per second)
-		Mixed with transactions: 236 files (26 per second)
-
-Data:
-	1.36 megabytes read (66.54 kilobytes per second)
-	4.45 megabytes written (216.80 kilobytes per second)
-
-
-======LAN NFS========================
-
-Creating files...Done
-Performing transactions..........Done
-Deleting files...Done
-Time:
-	21 seconds total
-	10 seconds of transactions (50 per second)
-
-Files:
-	764 created (36 per second)
-		Creation alone: 500 files (45 per second)
-		Mixed with transactions: 264 files (26 per second)
-	243 read (24 per second)
-	257 appended (25 per second)
-	764 deleted (36 per second)
-		Deletion alone: 528 files (528 per second)
-		Mixed with transactions: 236 files (23 per second)
-
-Data:
-	1.36 megabytes read (66.54 kilobytes per second)
-	4.45 megabytes written (216.80 kilobytes per second)
-
-
-\section {Snapshot Efficiency}
-
-    The amount of space occupied by a snapshot is an important measurement of how efficient the snapshot system is. In this chapter, we will focus on the actual space occupied by the snapshot.
-    
-    Sections that are not referring to a whole block like the third section in \fref{fig:rsync} will be named ``tuncated section'' here after.
-
-    To monitor the space occupied by a snapshot, we will do experiments using the following steps:
+    We used the following steps to estimate the storage space occupied by a snapshot (all random numbers follows uniform distribution):
 
 \begin{enumerate}
+
 	\item Initialize the file system with block size $B$.
 
 	\item Generate a file with size $F$.
 
 	\item Fill the file with sections and let a certain proportion ($P$) of the sections be truncated.
 
-	\item Take a snaphot of the file and make two branches.
+	\item Take a snaphot of the file and make two side branches.
 	
-	\item Switch to side branch 1, insert random number of bytes into the file at random offset. The offset value will be randomly picked in the file (uniform distribution). The number of bytes being inserted is also a uniforml distributed random variable between 1 to $F$.
+	\item Switch to side branch 1, insert random number of bytes into the file at random offset.
 
 	\item Take a snapshot on side branch 1 and calculate the total space occupied by this snapshot.
 
-	\item Switch to side branch 2, overwrite random number of bytes from random offset. The offset value is also randomly picked in the file and the number of bytes being inserted is uniformly distributed between $1$ to largest possible value (i.e., until the end of the file).
+	\item Switch to side branch 2, overwrite random number of bytes from random offset.
 
 	\item Take a snapshot on side branch 2 and calculate the total space occupied by this snapshot.
 
-	\item Repeat above steps for 10,000 times to collect data (the average value).
+	\item Repeat above steps for 10,000 times to get average value.
+
 \end{enumerate}
 
-    \tref{tab:sample_result} shows two sample results of such experiment. The first three columns in the table are the variables of the experiment. The later four columns are the data gathered from the experiment. For example, the column labeled ``overwrite, classic'' means correspnding write operation is an overwrite and the algorithm used by snapshot system is classic copy-on-write.
+    \tref{tab:sample_result} shows two sample results of such experiment. The first three columns in the table are the variables of the experiments. The later four columns are the data gathered from the experiments. For example, the column labeled ``overwrite, classic'' means correspnding write operation is an overwrite and the algorithm used by snapshot system is classic copy-on-write.
 
     The first row in \tref{tab:sample_result} represents an experiment on a Kabi File System initialized with 128-byte block size. The target file is a 12,608-byte file where 3\% of all sections are truncated. The result shows that on average it takes a classic copy-on-write snapshot system 3,288 bytes to take a snapshot after an overwrite operation. It takes 103 bytes more for a Kabi File System to take a snapshot under the same condition. When it comes to insertion, on average it only takes the Kabi File System 3,256 bytes to take a snapshot after an insertion while it costs almost 2 times more space for a classic copy-on-write snapshot system to do so.
 
-    This result is not difficult to explain. Because there is not much duplicated data in the overwrite scenario, SHA hashs and rolling checksums become overheads. This makes the performance of Kabi File System a little lower than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach can not do anything. So the Kabi File System have a better perfromance when it comes to insertion.
+    This result is not difficult to explain. Because there is not much duplicated data in the overwrite scenario, SHA hashs and rolling checksums become overheads. This makes the performance of Kabi File System a little lower than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach can not detect and make use of these duplicated data. So the Kabi File System have a better perfromance when it comes to insertion.
     
-    The second row in \tref{tab:sample_result} represents another experiment different from the first one in file size. The file size in the second row equals to 126,080 bytes. It is obvious that when the file size becomes larger, the amount of space that is used to take a snapshot also become larger. However, this makes the comparasion between two experiments of different file size not so obvious.Therefore We introduce the normalized data as shown in \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
+    The second row in \tref{tab:sample_result} represents another experiment different from the first one in file size. The file size in the second experiment equals to 126,080 bytes. It is obvious that when the file size becomes larger, the amount of space that is used to take a snapshot also become larger. Because of that, we cannot directly compare the amount of space occupied/saved in different snapshot - saving 10 bytes in a snapshot of a 100-Giga-byte file is obviously less efficient than saving 10 bytes in a snapshot of 100GB file. Therefore we introduce the normalized data as shown in \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
 
 \begin{lscape} 
 \begin{table}
@@ -279,9 +156,9 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 
 \subsection{Truncate Ratio}
 
-    The rsync algorithm searches duplication in local buffer and remote sections. It uses the rolling checksum of sections to find duplications. But a truncated section does not have a valid rolling checksum thus it cannot be benifited from the rsync algorithm. Hence We can infer that the more truncated sections we have, the less efficient the snapshot system will be.
+    The rsync algorithm searches duplication in local buffer and remote sections. It uses the rolling checksum of sections to find duplications. But a truncated section does not have a valid rolling checksum thus it cannot be benifited from the rsync algorithm. Hence We can infer that the more truncated sections we have, the less efficient snapshot system and file system deduplication will be.
 
-    \tref{tab:truncate_ratio} supports this inference. It shows the relationship between the efficiency and tuncated sections. Because a classic copy-on-write snapshot system does not have ``truncated section'', they are not infulenced by this experiment variable. On the other hand, tuncated sections significantly influence the efficiency of Kabi File System. It makes rsync algorithm less powerful. When all sections are truncated, the rsync algorithm no longer provide any extra efficiency in insert operation.
+    \tref{tab:truncate_ratio} supports this inference. It shows the relationship between the efficiency and tuncated sections. Because a classic copy-on-write snapshot system does not have ``truncated section'', they are not infulenced by this experiment variable. On the other hand, tuncated sections significantly influence the efficiency of Kabi File System. It makes rsync algorithm less powerful. It also reduces the chance to find two duplicated block using the deduplicate function offered by the filsystem. When all sections are truncated, the rsync algorithm no longer provide any extra efficiency in insert operation.
 
     In this experiment, we explicilty set the size of tuncated section to be half of the block size. That means for a Kabi File System with a 128-byte block size, the overhead (28 bytes) in metadata is almost half of the data contains in truncated section. In other words, for every 2 bytes stored in tuncated section, there is 1 extra byte cost in metadata. Since the increase in truncated-to-untruncated ratio implies more truncated section which is less efficient, this explains the significent decrease in efficiency in column 5 of \tref{tab:truncate_ratio}.
 

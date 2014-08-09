@@ -19,17 +19,17 @@
 
 \section{Snapshot Storage System}
 
-    Snapshot is an important features of a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRFS, and ext4.
+    Snapshot is an important features of a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRFS, and Ext4.
     
     The LVM snapshot is a snapshot system implemented in logical volume manager level. It takes snapshot of blocks in the logical volume and gives snapshots capability to any file system build upon the LVM system. However, as an underlying service, LVM snapshot is not aware of file structures, making it hard to find duplicate data stream and thus is less efficient in terms of disk space.
     
-    SnapFS was a file system focusing on snapshots in Linux kernel. It is strongly coupled with its underlying ext2/3 file system. Therefore SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to ext filesystem family. 
+    SnapFS was a file system focusing on snapshots in Linux kernel. It is strongly coupled with its underlying Ext2/3 file system. Therefore SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to ext filesystem family. 
     
     OverlayFS is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. Bu OverlayFS does not interfere its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as there's not restriction of the underlying file system. The OverlayFS applies copy-on-write on files and directory level.
 
     BTRFS is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them support copy-on-write writable snapshots at block level granularity.
     
-    Some early verions of ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into ext4 main branch. This makes ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for ext4.
+    Some early verions of Ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into Ext4 main branch. This makes Ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for Ext4.
 
 \section{The Rsync Algorithm}
     
