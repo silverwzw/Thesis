@@ -1,17 +1,18 @@
 \chapter{Related work}
 \label{chap:related_work}
 
-    In the past, a lot of research effort has been invested in customized file systems, noSQL database and snapshots. Several of them are related to this thesis and they are summarized in this chapter.
+    Much research efforts has been invested in customized file systems, noSQL database, and snapshots. Several of them are related to this thesis and they are summarized in this chapter.
 
 \section{POSIX}
 
-    POSIX, an acronym for "Portable Operating System Interface", is a family of IEEE standard for operating systems that influences the design of many modern operating system (e.g. Linux, Windows NT, Mac). The POSIX standard defines a standard environment for operating system (process, user, file, directory, etc.) along with a set of APIs for user program (like fork, exec, I/O functions, etc.). Some file format standard (e.g. tar) and some shell utilities (e.g. awk, vi) are also included in the standard. The purpose of this standard is to maintain compatibility between operating system such that a user program that uses POSIX api can be compiled properly on all POSIX compatible operating system.
+    POSIX (Portable Operating System Interface), is a family of IEEE standard for operating systems \cite{posix_wiki}. It influences the design of many modern operating system (e.g. Linux, Windows NT, Mac). The POSIX standard defines a standard environment for operating system (process, user, file, directory, etc.) along with a set of APIs for user program (like fork, exec, I/O functions, etc.)\cite{posix}. Some file format standard (e.g. tar) and some shell utilities (e.g. awk, vi) are also included in the standard. The purpose of this standard is to maintain compatibility between operating system such that a user program that uses POSIX api can be compiled properly on all POSIX compatible operating system.
 
-    The file system APIs that defines file and directory operations are included in POSIX.1 standrad.
+    The POSIX standard specities a set of file system APIs that defines file and directory operations. Any file system that implements this set of APIs should be compatible with operating systems that follows POSIX standard.
 
-\section{Fuse}
+\section{FUSE}
 
-	FUSE, the Filesystem in User Space, is a developer framework for file system.  It has been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such way developers of the file system do not need to understand complicated kernel code and to debug the kernel. It also enables a nonprivileged user to mount their own file system without influencing other users.
+    FUSE, the Filesystem in User Space, is a developer framework for file system. It is originally developed for AVFS but has become a separate project. It now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel. 
+    There are different language bindings of FUSE. Java bindings include FUSE-J and FUSE-JNA. our implementation is built on the later one which is a recently active project.
 
 \section{MongoDB}
 
@@ -21,16 +22,17 @@
 
     Snapshot is an important features of a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRFS, and Ext4.
     
-    The LVM snapshot is a snapshot system implemented in logical volume manager level. It takes snapshot of blocks in the logical volume and gives snapshots capability to any file system build upon the LVM system. However, as an underlying service, LVM snapshot is not aware of file structures, making it hard to find duplicate data stream and thus is less efficient in terms of disk space.
+    The LVM snapshot is a snapshot system included in the logical volume manager \cite{lvm}\cite{disk_perform_lvm}. It takes snapshot of blocks in the logical volume and gives snapshots capability to any file system build upon the LVM system. However, as an underlying service, LVM snapshot is not aware of file structures, making it hard to find duplicate data stream and thus is less efficient in terms of disk space.
     
-    SnapFS was a file system focusing on snapshots in Linux kernel. It is strongly coupled with its underlying Ext2/3 file system. Therefore SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to ext filesystem family. 
+    SnapFS was a file system focusing on snapshots in Linux kernel. \cite{snapfs} It is strongly coupled with its underlying Ext file system. Therefore, SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to Ext file system family. 
     
-    OverlayFS is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. Bu OverlayFS does not interfere its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as there's not restriction of the underlying file system. The OverlayFS applies copy-on-write on files and directory level.
+    OverlayFS \cite{overlayfs} is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. But OverlayFS does not restrict the type of its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as it can adapt to any storage media that has an standard file system implemented. The OverlayFS applies copy-on-write on files and directory level.
 
+    ==========================================
     BTRFS is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them support copy-on-write writable snapshots at block level granularity.
     
     Some early verions of Ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into Ext4 main branch. This makes Ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for Ext4.
-
+    ==========================================
 \section{The Rsync Algorithm}
     
-    The rsync algorithm is used in the rsync utility software and protocol for unix-like system. This algorithm is invented by Andrew Tridgell and he described the algorithm as "for the efficient update of data over a high latency and low bandwidth link". In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.
+    The rsync algorithm is used in the rsync utility in unix-like system to synchronize files though network. This algorithm is invented by Andrew Tridgell and he described the algorithm as ``for the efficient update of data over a high latency and low bandwidth link''. In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.
