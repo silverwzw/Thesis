@@ -1,16 +1,18 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-    In this thesis, we presented the design of a new distributed file system with snapshot capability. We also built a proof of concept implementation of such design using MongoDB, FUSEi and other techniques. We designed and implemented a new copy-on-write snapshot system and try to improve its efficiency in many ways. We evaluated the snapshot system by testing variables that affects the efficiency of the snapshot and we also came up with some explaination of how these factors affect the efficiency.
+    In this thesis, we presented the design of a new distributed file system built on document oriented NoSQL database with snapshot capability. We also built a proof of concept implementation of such design using MongoDB, FUSE and other techniques. We designed and implemented a new patch based snapshot system and try to improve its efficiency in many ways. We evaluated the snapshot system by testing variables that affects the efficiency of the snapshot and file system deduplication. We also came up with some explaination of how those effects.
 
-    We believe the major contribution of this thesis are the design of the proposed file system, the design of the snapshot subsystem, and the evaluation of the snapshot subsystem.
+    We believe the major contribution of this thesis are the design of a distributed file system based on document oriented database, the design of the patch based snapshot subsystem, and the evaluation of such design.
 
 \section{Future work}
 
-     We already knew that the proportion of truncated section affects the efficiency significently. It is possible that a large block size will increase the proportion of truncated section in long run. Further more, We may also want to find out the optimal block size when given the distribution of file size stored on the Kabi File System.
+    Due to time constrains, the design of Kabi File system contains several flaws. Some possible fixs or enhancements to the Kabi File System are discuessed below.
+    
+    \emph{Using native FUSE instead of FUSE-JNA.} As discuessed in \cref{chap:perform}, the file system uses FUSE-JNA to connect the file system logic with fuse library. FUSE-JNA is a good language binding for Java development, but it is slow in performance\cite{fusejna}. A FUSE-JNA wrapped ext4 is almost 1,000 times slower than the native ext4 according to our tests. Thus we believe by replacing FUSE-JNA with original fuse C library, we will observe improvement in performance.
 
-     In the file system proposed, the proportion of truncated section will increase though out the time. It is possible to merge adjacent truncated sections to reduce the occuernce of truncated section so as to improve the performance. Futher more, it may be worthy to rebuild a file node filled with truncated sections at some point, such that the new file node contains the same data but less truncated section.
+    \emph{Reducing the number of truncated sections.} From \cref{chap:perform}, we demonstrats a strong negative relation between the proportion of truncated section versus the space efficiency. Therefore, if we can reduce the number of truncated sections, we may have increased performance in return. One of the possible ways may be merging adjacent truncated sections into less but larger sections. Futhermore, since the number of truncated sections never reduce over time in our current design, it is possible that after long run a file node may filled with truncated sections. So it may be worthy the rebuild the whole file node such that the new file node contains the same data but less truncated section.
+    
+    \emph{Finding optimal value for block size.} Smaller block size will lead to fine-grained sections. As shown in \cref{chap:perform}, fine-grained sections increases the performance of snapshot after file insertion operation. However, larger block size means less sections. Thus it reduces the metadata occupied by section objects and block nodes. We may find an optimal value for block size to maximize the performance of snapshot system and deduplication.
 
-     (SWITCHABLE branches)
-     (overhead of MongoDB nonlinear addressing)
-     (FUSE-JNA vs native FUSE)
+    \emph{Promoting a frequently accessed snapshot to head snapshot.} In our design of snapshot system, access to head snapshot is optimized. We assume the working branch of a Kabi File System user is always the main branch. So we make sure the most recent snapshot in the main branch is the head snapshot. However, a user may make some mistake on main branch and abandon the main branch at some point. If he want to start working on a side branch, he will suffer the overhead of patch processing. In such case, that user may want to promote one snapshot on a side branchn to head snapshot. This can be done by simply revert all patches on the snapshot chain from previous head snapshot to new head snapshot.
