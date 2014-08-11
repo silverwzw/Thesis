@@ -15,3 +15,6 @@ clean :
 
 view :
 	evince $(NAME).pdf &
+
+edit:
+	vim $(CHAPTERS) thesis.bib thesis.tex

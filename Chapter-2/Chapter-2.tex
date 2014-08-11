@@ -11,12 +11,15 @@
 
 \section{FUSE}
 
-    FUSE, the Filesystem in User Space, is a developer framework for file system. It is originally developed for AVFS but has become a separate project. It now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel. 
-    There are different language bindings of FUSE. Java bindings include FUSE-J and FUSE-JNA. our implementation is built on the later one which is a recently active project.
+    FUSE, the Filesystem in User Space, is a developer framework for file system. It is originally developed for AVFS but has become a separate project. It now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel. \cite{fuse}
+
+    There are different language bindings of FUSE. Our implementation is built on the Java bindings FUSE-JNA. The FUSE-JNA is a recent active project developed by Etienne Perot. It describs itself as ``No-nonsense, actually-working Java bindings to FUSE using JNA''. \cite{fusejna} Other Java binding of FUSE include FUSE-J, jnetfs .
 
 \section{MongoDB}
 
-    MongoDB is a document oriented NoSQL distributed database written in C++. It focuses on scalability, performance and availability. Document oriented storage that can store semi-structured data makes it flexible and makes it suitable for agile development. In addition, mongoDB also provides features like load balancing and replication. These features make mongoDB an ideal backend for a distributed file system. Developers have already built a file storage system called GridFS using mongoDB which provides a mechanism to store and retrieve file of any size.
+    MongoDB is a document oriented NoSQL distributed database written in C++.\cite{mongodb} It focuses on scalability, performance and availability.\cite{mongo_overview} Document oriented storage that can store semi-structured data makes it flexible and makes it suitable for agile development \cite{docdb}. In addition, MongoDB also provides features like load balancing and replication. These features make MongoDB an ideal backend for a distributed file system. UsingDevelopers have already built a file storage system called GridFS using MongoDB which provides a mechanism to store and retrieve file of any size.\cite{gridfs}
+
+    MongoDB represents document in JSON (JavaScript Object Notation) format. JSON is a open, human and machine-readable standard that facilitates data interchange. Behind the scenes, MongoDB uses BSON (Binary JSON) to encode and store the documents. Bith JSON and BSON format supports embedding object and arrays within other objects and arrays. MongoDB can query and build index not only on top level keys but also nested obejects. The deveoper believes this will grant users of MongoDB ease of use and flexibility togerther with the speed and richness of a lightweight binary format.\cite{bson}
 
 \section{Snapshot Storage System}
 
@@ -28,11 +31,10 @@
     
     OverlayFS \cite{overlayfs} is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. But OverlayFS does not restrict the type of its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as it can adapt to any storage media that has an standard file system implemented. The OverlayFS applies copy-on-write on files and directory level.
 
-    ==========================================
-    BTRFS is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them support copy-on-write writable snapshots at block level granularity.
+    BTRFS \cite{btrfs} is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them writable support copy-on-write snapshots at block level granularity \cite{btrfscow}.
     
-    Some early verions of Ext4 file system do not support snapshot. But in 2011 the copy-on-write snapshot branch is merged into Ext4 main branch. This makes Ext4 another snapshot system that applies copy-on-wrte stratergy on block level. There's also a group of developers currently working on the writable snapshot feature for Ext4.
-    ==========================================
+    Ext4 file system was extends to include a snapshot subsystem that applies copy-on-wrte stratergy on block level. A writable snapshot feature for Ext4 is currently under development by the same group of developer.\cite{ext4snap} It is inspired by CTERA Networks's NEXT3 Filesystem which is a clone of ext3 filesystem with built-in support for snapshots.
+
 \section{The Rsync Algorithm}
     
-    The rsync algorithm is used in the rsync utility in unix-like system to synchronize files though network. This algorithm is invented by Andrew Tridgell and he described the algorithm as ``for the efficient update of data over a high latency and low bandwidth link''. In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.
+    The rsync algorithm is used in the rsync utility in unix-like system to synchronize files though network. This algorithm is invented by Andrew Tridgell and he described the algorithm as ``for the efficient update of data over a high latency and low bandwidth link'' \cite{rsync_alg}. In order to achieve such efficiency, the algorithm tries to find duplicated data stream between files with O(1) time complexity. The algorithm performs well in delta encoding and reduceds the data transferred between remote machines.
