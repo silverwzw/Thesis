@@ -5,7 +5,7 @@ This chapter will discuss the design and implementation of the Kabi File System.
 
 \section{System Modules and Layout}
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.5\textwidth]{Chapter-3/figs/fig8.png}
 \caption{Modules of Kabi File System}
@@ -14,7 +14,7 @@ This chapter will discuss the design and implementation of the Kabi File System.
 
     As shown in \fref{fig:modules}, the Kabi File System has two internal modules and an internal interface in-between. The design is for replaceable modules. The internal interface defines some primary data structures (shown in \tref{tab:data_struct}) and a set of standard operations on these data structures. The file system logic module decomposes any incoming file system call to a series of standard operations. While the storage abstraction module abstracts the underlying storage media to the primary data structures and exposes a set of method that implements the standard operations.
 
-\begin{table}
+\begin{table}[t]
 \caption{Primary Data Structures}
 \label{tab:data_struct}
 \begin{center}
@@ -33,7 +33,7 @@ Snapshot Node & Stores metadata of a snapshot\\
 
     The user program communicates with the file system logic module through operating system's file system APIs. Therefore, we can have different implementations of file system logic module for different file system API (e.g. FUSE, Dokan, POSIX). The storage abstraction module operates the underlying storage media through its driver, protocol or API. We can also have different implementations of storage abstraction module for different storage media (e.g. MongoDB, Volume manager, Amazon S3 service). By using this design, we can easily migrate the file system to other operating system (by changing the file system logic module) or other underlying storage media (by replacing the storage abstraction module). In our proof-of-concept implementation, the file system logic module is bind with FUSE and the storage abstraction module is written for MongoDB. 
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig1.png}
 \caption{System Diagram of Kabi File System}
@@ -54,18 +54,18 @@ Snapshot Node & Stores metadata of a snapshot\\
 
     \fref{fig:basic_entities} shows a basic view of the nodes and their relations in the Kabi File System. It consists of four nodes and an object: the block node, the directory node, the file node, the snapshot node, and the patch object. They refer to each other and form a directed acyclic graph. 
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.9\textwidth]{Chapter-3/figs/fig2.png}
 \caption{Basic Entities and Relations}
 \label{fig:basic_entities}
 \end{figure}
 
-\subsection{Block nodes}
+\subsection{Block Nodes}
 
-    Block node is one of the basic entities in this file system. A block node is a representation of fixed-size data. That size of data represented by the node is called representation size. The rep-size is an immutable parameter which is determined on file system initialization. Different instance of Kabi file system can have different rep-size. Although rep-size is fixed, a block node does not have to actually store that amount. If the size of data stored in block node is smaller than rep-size, when reading the block node, the Kabi file system automatically append `\textbackslash0' into the memory buffer. The fixed rep-size is to ensure that each rolling hash correspond to exact one block node since the rolling hash is a function on fixed length data. While the variable actual data length is designed to make ``truncated section'' (discussed in \cref{chap:snapshot}) more efficient. In addition to the data field, the other filed of a block node is a 128 bit hash of the byte string. This field is for deduplication and will be discussed in later section. The structure of a typical block node is shown in \tref{tab:block_fields}.
+    Block node is one of the basic entities in this file system. A block node is a representation of fixed-size data. That size of data represented by the node is called representation size. The rep-size is an immutable parameter which is determined on file system initialization. Different instance of Kabi file system can have different rep-size. Although rep-size is fixed, a block node does not have to actually store that amount. If the size of data stored in block node is smaller than rep-size, when reading the block node, the Kabi file system automatically append `\textbackslash0' into the memory buffer. The fixed rep-size is to ensure that each rolling hash correspond to exact one block node since the rolling hash is a function on fixed length data. While the variable actual data length is designed to make ``truncated section'' (discussed in \cref{chap:snapshot}) more efficient. In addition to the data field, the other filed of a block node is a 128-bit hash of the byte string. This field is for deduplication and will be discussed in later section. The structure of a typical block node is shown in \tref{tab:block_fields}.
 
-\begin{table}
+\begin{table}[t]
 \caption{Fields in Block Node}
 \label{tab:block_fields}
 \begin{center}
@@ -73,18 +73,18 @@ Snapshot Node & Stores metadata of a snapshot\\
 \toprule
 field & remark\\
 \midrule
-ID & the 128 bit SHA hash of block data\\
+ID & the 128-bit SHA hash of block data\\
 data & the block data\\
 \bottomrule
 \end{tabular}
 \end{center}
 \end{table}
 
-\subsection{File node and section object}
+\subsection{File Node and Section Object}
 
     Each file in the Kabi File System is associated with a file node that holds the metadata of the file. In the Kabi File System, the content of the file is made up of several sections of variable length and each section is represented through a ``section object''. A file node consists of an array of section objects and other fields. Connecting the content of data section in order forms the content of the file. Each data section corresponds to exactly one block node and the block node may contribute only part of its binary data to the data section instead of its entire binary data. If only a part of the block node data is used by the data section, two integers will be specified to locate the start index and end index. This design is for reusing the block node in the snapshot system. By such design, if a block node is partly overwritten and the original block node is saved for snapshot system, we can use part of the original data to represent part of the content in file. \fref{fig:file_and_section} shows a file node that consist of 3 data sections where the first data section contributes all 4 bytes of corresponding block node data, the second section gets 2 bytes from its corresponding block node and the last section receives the first 2 bytes from its corresponding block node. The detailed structure of a file node is shown in \tref{tab:file_fields}.
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.5\textwidth]{Chapter-3/figs/fig7.png}
 \caption{File Node, Section Object and Block Node}
@@ -92,7 +92,7 @@ data & the block data\\
 \end{figure}
 
 
-\begin{table}
+\begin{table}[t]
 \caption{Fields in File Node}
 \label{tab:file_fields}
 \begin{center}
@@ -113,14 +113,14 @@ modified & timestamp of last modification\\
 
     As mentioned above, a file node has an array of section object. Each section object is a substructure of file node and represents a section of file data. It consists of three fields as shown in \tref{tab:section_fields}: an object ID referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifying the index of last byte in block node. In the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{Chapter-3/figs/fig9.png}
+\includegraphics[width=0.7\textwidth]{Chapter-3/figs/fig9.png}
 \caption{Section Object and Block Node}
 \label{fig:section_and_block}
 \end{figure}
 
-\begin{table}
+\begin{table}[t]
 \caption{Fields in Section Object}
 \label{tab:section_fields}
 \begin{center}
@@ -129,7 +129,7 @@ modified & timestamp of last modification\\
 field & remark\\
 \midrule
 ID & ID of corresponding block\\
-roll & the 32 bit rolling hash of block data\\
+roll & the 32-bit rolling hash of block data\\
 omit & specify how many leading bytes in block will be omitted\\
 offset & the offset of last byte in this section\\
 \bottomrule
@@ -139,11 +139,11 @@ offset & the offset of last byte in this section\\
 
     The size field stores an integer value, representing the size of this file in bytes. When reading the file, `\textbackslash0' padding will be append to the end of files in read buffer if the value in the ``size'' field exceed the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the value of the ``size'' field, data will be truncated and the data exceeds the size will not be noticed by end user. This design allows faster creation and truncate operation to a file.
 
-\subsection{Directory node and subnode object}
+\subsection{Directory Node and Subnode Object}
 
      A directory node corresponds to a directory in the file system. Directory nodes share similar structures with the file node, it also consists of fields that store the metadata and an array of subnode objects. The subnode object is similar to the section object in file node. A subnode object corresponds to an ``item'' under the directory. A subnode object contains a reference to the ``item'' and a string represents the display name of the ``item''. Depending on the type of node that a subnode object is referencing, the ``item'' can be a file under the directory or a sub directory.
 
-\begin{table}
+\begin{table}[t]
 \caption{Fields in Directory Node}
 \label{tab:dir_fields}
 \begin{center}
@@ -161,7 +161,7 @@ modified & timestamp for last modification\\
 \end{center}
 \end{table}
 
-\begin{table}
+\begin{table}[t]
 \caption{Fields in Subnode Object}
 \label{tab:subnode_fields}
 \begin{center}
@@ -182,7 +182,7 @@ ID & ID of the file or subdirectory\\
 
     The file system logic module decomposes the FUSE file system calls to standard node operations defined by the internal interface. Most of the FUSE file system calls have been implemented in the Kabi File System, some of those important calls include access(), getattr(), read(), write(), rmdir(), unlink(), mkdir(), truncate(), flush(), open() and release(). Related node operations are addDirNode2db(), addFileNode2db(), addDataNode2db() and patch(). The former three methods write a node object into the database as a new node. The patch() method replaces an existing node with its new version.
 
-\subsection{Read operations}
+\subsection{Read Operations}
 
     Three important read file system calls are access(), getattr(), and read(). The access() function tests the existence and permission settings of a file or directory in the file system. getattr() returns the meta information about a file or directory. The read() function reads and returns binary data of given length starting at a specified offset.
 
@@ -194,9 +194,9 @@ ID & ID of the file or subdirectory\\
 
     Once the file node is retrieved, reading the file become straight forward. The file system will traverse the section object array to find the ID of block node associated with the read call. It will then calculate the begin and end index of the bytes of the block content that will be copied to read buffer. At last the file system will query MongoDB for block nodes and copy requested data to buffer.
 
-\subsection{Write operations}
+\subsection{Write Operations}
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig10.png}
 \caption{Copy-on-Write}
@@ -209,7 +209,7 @@ ID & ID of the file or subdirectory\\
 
 	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync() or fdatasync() as suggested in POSIX standard to flush important data to remote. The flush process is atomic, guaranteed by MongoDB. 
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig11.png}
 \caption{Write Buffer}
@@ -220,37 +220,37 @@ ID & ID of the file or subdirectory\\
 
     Compared to the traditional copy-on-write snapshot file system which copies and overwrites the entire block whenever there is a byte change, this design can make use of the old block. Because the old block will be kept for snapshot, reusing it in current view may save some storage.
 
-    However, there is a tradeoff between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA ID. There're many cases where this overhead is worthy. In the extreme case, if we overwrite 2 bytes on the boundary of two blocks right after a snapshot is taken, two new blocks will be created in classic copy-on-write snapshot system but only a 2-byte block will be added in our design. With a block size of 2,048 bytes and a file size of 20,480 byte, the saving in this case is 3,798 bytes.
+    However, there is a tradeoff between these savings and the overhead of such design. Each data section object requires 224 bits of storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bits to store its SHA ID. There're many cases where this overhead is worthy. In the extreme case, if we overwrite 2 bytes on the boundary of two blocks right after a snapshot is taken, two new blocks will be created in classic copy-on-write snapshot system but only a 2-byte block will be added in our design. With a block size of 2,048 bytes and a file size of 20,480 bytes, the saving in this case is 3,798 bytes.
 
 \subsection{Consistency}
 
     Maintaining consistency is an important task for file system. During a write call, the file system may enter an incomplete state before the write call successfully returns. A file system should prevent a read call from reaching the incomplete state to keep consistency. There are many ways to keep a system consistent. Some of the file systems use lock to prevent a read operation when the file system is processing a write call. In our implementation, we use atomic update to prevent the incomplete state.
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig27.png}
+\includegraphics[width=0.4\textwidth]{Chapter-3/figs/fig27.png}
 \caption{Consistency - within a snapshot}
 \label{fig:consist1}
 \end{figure}
 
-\begin{figure}[hbtp]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig28.png}
+\includegraphics[width=0.4\textwidth]{Chapter-3/figs/fig28.png}
 \caption{Consistency - cross snapshots}
 \label{fig:consist2}
 \end{figure}
 
-    \fref{fig:consist1} and \fref{fig:consist2} demonstrates how we prevent incomplete state. The write process can be divided into two steps. The first step is upload, where we upload the new data node and the new version of metadata node that is going to be affected. In this step, read operations may come in at any time and observe the old content because all new nodes are not connected to the directed graph and all old nodes haven't been modified. The second step is atomic update. This step is always atomic, guaranteed by MongoDB. In this step, the file system will change affected reference from referring the old node to new node. When a write operation only affects one snapshot. The file system will directly replace the old node with new node by update referring reference as shown in \fref{fig:consist1}. When a write operation affects more than one snapshot, the file system will upload a patch object to replace the old node with new node and then attach the object to the snapshot node in step 2.
+    \fref{fig:consist1} and \fref{fig:consist2} demonstrates how we prevent incomplete state. The write process can be divided into two steps. The first step is upload, where we upload the new data node and new version of metadata node that is going to be affected by the write call. In this step, read operations may come in at any time and observe the old content because all new nodes are not connected to the directed graph and all old nodes haven't been modified. The second step is atomic update. This step is always atomic, guaranteed by MongoDB. In this step, the file system will change affected reference from referring the old node to new node. When a write operation only affects one snapshot. The file system will directly replace the old node with new node by updating the referring reference as shown in \fref{fig:consist1}. When a write operation affects more than one snapshot like \fref{fig:consist2}, the file system will upload a patch object to replace the old node with new node and then attach the object to the snapshot node in the atomic update step.
 
 \subsection{Deduplication}
 
     In a copy-on-write file system, block nodes are immutable thus there's no in-place modification to block nodes. Therefore, in most cases, making a change to the file system means creation of new block node. This is an expensive operation as it requires storage space on remote and all data must be transferred to remote.
     
-    We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
+    We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and the node can be reused.
 
     By using SHA hash as the block node ID, it is possible to find and eliminate blocks that contain duplicate data. Before a block of binary data is uploaded, the file system will query the database with its SHA hash. If a instance with same ID is found, the file system will stop unloading the block node but directly return the ID of existing node with same hash value. In this way, the file system not only can perform a copy operation efficiently but also save space for duplicate blocks. 
 
 \section{Conclusion}
 
-    In this chapter, we presented a design of distributed file system with replaceable modules. We demonstrated the overview of the file system, some detailed design choices like the cache and deduplicate feature.
+    In this chapter, we presented a design of distributed file system with replaceable modules. We demonstrated the overview of the file system, basic entities and operations in the system, some detailed design choices like the cache and deduplicate feature.
 

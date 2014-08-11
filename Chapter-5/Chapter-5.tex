@@ -14,7 +14,7 @@
     The file system test results are shown in \tref{tab:fs_performance}. The result shows that although as a local file system the Kabi File System is not as good as Ext4, but as a disitributed file system it is comparable to NFS.
 
 \begin{lscape} 
-\begin{table}
+\begin{table}[t]
 \caption{File System Performance Test}
 \label{tab:fs_performance}
 \begin{center}
@@ -81,7 +81,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
     The second row in \tref{tab:sample_result} represents another experiment different from the first one in file size. The file size in the second experiment equals to 126,080 bytes. It is obvious that when the file size becomes larger, the amount of space that is used to take a snapshot also become larger. Because of that, we cannot directly compare the amount of space occupied/saved in different snapshot - saving 10 bytes in a snapshot of a 100-Giga-byte file is obviously less efficient than saving 10 bytes in a snapshot of 100GB file. Therefore we introduce the normalized data as shown in \tref{tab:norm}. The major difference between \tref{tab:norm} and \tref{tab:sample_result} is that in \tref{tab:norm} we use the size of the file to normailze the result data so that we can compare results from different experiments easier.
 
 \begin{lscape} 
-\begin{table}
+\begin{table}[t]
 \caption{Sample result of the experiment}
 \label{tab:sample_result}
 \begin{center}
@@ -99,7 +99,7 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
 \end{center}
 \end{table}
 
-\begin{table}
+\begin{table}[t]
 \caption{Normalized data}
 \label{tab:norm}
 \begin{center}
@@ -127,7 +127,7 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
     The data in column 5 reflects the fact that an increase in file-size-to-block-size ratio will result in an improvement in efficiency. The reason could be that the proportion of the metadata will reduces as the file size increases. For example, an overwrite operation can result in at most two additional sections added to the file node. This is an extra 56-byte metadata overhead. Compared to a 704-byte file, such overhead is large. On the other hand, if the file size is 14,008 bytes, this overhead can be omitted.
 
 \begin{lscape} 
-\begin{table}
+\begin{table}[t]
 \caption{File Size to Block Size ratio}
 \label{tab:fb_ratio}
 \begin{center}
@@ -163,7 +163,7 @@ block size & file size & truncated section & overwrite, classic & overwrite, Kab
     In this experiment, we explicitly set the size of truncated section to be half of the block size. That means for a Kabi File System with a 128-byte block size, the overhead (28 bytes) in metadata is almost half of the data contains in truncated section. In other words, for every 2 bytes stored in truncated section, there is 1 extra byte cost in metadata. Since the increase in truncated-to-untruncated ratio implies more truncated section which is less efficient, this explains the significant decrease in efficiency in column 5 of \tref{tab:truncate_ratio}.
 
 \begin{lscape} 
-\begin{table}
+\begin{table}[t]
 \caption{Truncate Ratio}
 \label{tab:truncate_ratio}
 \begin{center}
