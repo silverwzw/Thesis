@@ -1,6 +1,8 @@
 \chapter{The Kabi File System}
 \label{chap:fs}
 
+This chapter will discuss the design and implementation of the Kabi File System. We will be talking about the system layout and its advantages. It will also include the design choices and some important implementation details of some baisc file system entities. In the last part, we will talk about the implementation of standard read.
+
 \section{System Modules and Layout}
 
 \begin{figure}[hbtp]
@@ -10,20 +12,20 @@
 \label{fig:modules}
 \end{figure}
 
-    The Kabi File System has two internal modules and an internal interface in-between. The two modules, namely the storage abstraction module and the file system logic module, and their relations are shown in \fref{fig:modules}. The internal interface defines some primary data structures (shown in \tref{tab:data_struct}) and a set of standrad operations on these data structures. The file system logic module decomposes any incoming file system call to a series of standard operations. While the storage abstraction module abstracts the underlying storage media to the primary data structures and exposes a set of method that implements the standard operations.
+    As shown in \fref{fig:modules}, the Kabi File System has two internal modules and an internal interface in-between. The design is for replcaeable modules. The internal interface defines some primary data structures (shown in \tref{tab:data_struct}) and a set of standrad operations on these data structures. The file system logic module decomposes any incoming file system call to a series of standard operations. While the storage abstraction module abstracts the underlying storage media to the primary data structures and exposes a set of method that implements the standard operations.
 
 \begin{table}
 \caption{Primary Data Structures}
 \label{tab:data_struct}
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{ll}
 \toprule
-Data structures & Related file system entity & Remark\\
+Data structures & Remark\\
 \midrule
-Block Node & Data Block & Stores actual data\\
-File Node & File & Stores the meta data\\
-Directory Node & Directory & \\
-Snapshot Node & Snapshot & \\
+Block Node & Stores file data trunk\\
+File Node & Stores the metadata of a file\\
+Directory Node & Stores metadata of a directory \\
+Snapshot Node & Stores metadata of a snapshot\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -38,7 +40,7 @@ Snapshot Node & Snapshot & \\
 \label{fig:diagram}
 \end{figure}
 
-    The system diagram in \fref{fig:diagram} shows the relationship between the file system, MongoDB and operating system in this implementation. FUSE is used to connect the user program file system calls to the Kabi File System. A file system call from a user program will first be captured by VFS module in the kernel and routed to FUSE. FUSE will then pass on the file system call to the file system and pop the return value back to VFS module. On the other side, the MongoDB Java driver is used by system abstraction module to communicate with the MongoDB daemon process (Mongos or Mongod).
+    The system diagram in \fref{fig:diagram} shows the relationship between the file system, MongoDB and operating system in this implementation. FUSE is used to connect the user program file system calls to the Kabi File System. A file system call from a user program will first be captured by VFS module in the kernel and routed to FUSE. FUSE will then pass on the file system call to the file system and pop the return value back to VFS module. On the other side, the MongoDB Java driver is used by system abstraction module to communicate with the MongoDB daemon process.
 
 \section{File System Initialization}
 
@@ -48,7 +50,7 @@ Snapshot Node & Snapshot & \\
 
 \section{Nodes and Objects}
 
-    Nodes are primary data structures in the Kabi File System. A node is stored as a document in MongoDB and each type of node corresponds to a collection in MongoDB.A node can have a complex structure. A member of a node structure can be as simple as an integer but also can be as complex as an array of dictionaries. For the convenience of discussion, complex substructures will be discussed seperatly. These substructures are part of the node structure and will be called ``object'' instead of ``node''. The section object and the subnode object will be discussed in this chapter and the patch object will be discussed in \cref{chap:snapshot}.
+    Nodes are the primary data structures in the Kabi File System. A node is stored as a document in MongoDB and each type of node corresponds to a collection in MongoDB. A node can have a complex structure. A member of a node structure can be as simple as an integer but also can be as complex as an array of dictionaries. For the convenience of discussion, complex substructures will be discussed seperately. These substructures are part of the node structure and will be called ``object'' instead of ``node''. The section object and the subnode object will be discussed in this chapter and the patch object will be discussed in \cref{chap:snapshot}.
 
     \fref{fig:basic_entities} shows a basic view of the nodes and their relations in the Kabi File System. It consists of four nodes and an object: the block node, the directory node, the file node, the snapshot node, and the patch object. They refer to each other and form a directed acyclic graph. 
 
@@ -61,7 +63,7 @@ Snapshot Node & Snapshot & \\
 
 \subsection{Block nodes}
 
-    Block node is one of the basic entities in this file system. A block node is a representation of fixed-size data. That size of data represented by the node is called represenation size. The rep-size is an immutable parameter which is determind on file system initialization. Different instance of Kabi file system can have different rep-size. Although rep-size is fixed, a block node does not have to actually store that amount. If the size of data stored in block is smaller than rep-size, the Kabi file system will add `\textbackslash0' padding at the end. The fixed rep-size is to ensure that each rolling hash correspond to exact one block node since the rolling hash is a function on fixed length data. While the variable actual data length is designed to make ``truncated section'' (discussed in \cref{chap:snapshot}) more efficient. In addition to the data field, the other filed of a block node is a 128 bit hash of the byte string. This field is for deduplication and will be discussed in later section. The structure of a typical block node is shown in \tref{tab:block_fields}.
+    Block node is one of the basic entities in this file system. A block node is a representation of fixed-size data. That size of data represented by the node is called represenation size. The rep-size is an immutable parameter which is determind on file system initialization. Different instance of Kabi file system can have different rep-size. Although rep-size is fixed, a block node does not have to actually store that amount. If the size of data stored in block node is smaller than rep-size, when reading the block node, the Kabi file system automatically append `\textbackslash0' into the memory buffer. The fixed rep-size is to ensure that each rolling hash correspond to exact one block node since the rolling hash is a function on fixed length data. While the variable actual data length is designed to make ``truncated section'' (discussed in \cref{chap:snapshot}) more efficient. In addition to the data field, the other filed of a block node is a 128 bit hash of the byte string. This field is for deduplication and will be discussed in later section. The structure of a typical block node is shown in \tref{tab:block_fields}.
 
 \begin{table}
 \caption{Fields in Block Node}
@@ -71,7 +73,7 @@ Snapshot Node & Snapshot & \\
 \toprule
 field & remark\\
 \midrule
-id & the 128 bit SHA hash of block data\\
+ID & the 128 bit SHA hash of block data\\
 data & the block data\\
 \bottomrule
 \end{tabular}
@@ -80,7 +82,7 @@ data & the block data\\
 
 \subsection{File node and section object}
 
-    Each file in the Kabi File System is associated with a file node which holds the meta data of the file. In the Kabi File System, the content of the file is made up of several sections of variable length and each section is represented through a ``section object''. A file node consists of an array of section objects and other fields. Connecting the content of data section in order forms the content of the file. Each data section corresponds to exactly one block node and the block node may contribute only part of its binary data to the data section instead of its entire binary data. If only a part of the block node data is used by the data section, two integers will be specified to locate the start index and end index. \fref{fig:file_and_section} shows a file node that consist of 3 data sections where the first data section contributes all 4 bytes of corresponding block node data, the second section gets 2 bytes from its corresponding block node and the last section receives the first 2 bytes from its corresponding block node. The detailed structure of a file node is shown in \tref{tab:file_fields}.
+    Each file in the Kabi File System is associated with a file node that holds the meta data of the file. In the Kabi File System, the content of the file is made up of several sections of variable length and each section is represented through a ``section object''. A file node consists of an array of section objects and other fields. Connecting the content of data section in order forms the content of the file. Each data section corresponds to exactly one block node and the block node may contribute only part of its binary data to the data section instead of its entire binary data. If only a part of the block node data is used by the data section, two integers will be specified to locate the start index and end index. This design is for reusing the blcok node in the snapshot system. By such design, if a block node is partly overwritten and the original block node is saved for snapshot system, we can use part of the original data to represent part of the content in file. \fref{fig:file_and_section} shows a file node that consist of 3 data sections where the first data section contributes all 4 bytes of corresponding block node data, the second section gets 2 bytes from its corresponding block node and the last section receives the first 2 bytes from its corresponding block node. The detailed structure of a file node is shown in \tref{tab:file_fields}.
 
 \begin{figure}[hbtp]
 \centering
@@ -109,7 +111,7 @@ modified & timestamp of last modification\\
 \end{center}
 \end{table}
 
-    As mentioned above, a file node has an array of section object. Each section object is a substrucutre of file node and represents a section of file data. It consists of three fields as shown in \tref{tab:section_fields}: an object id referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifing the index of last byte in block node. In the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
+    As mentioned above, a file node has an array of section object. Each section object is a substrucutre of file node and represents a section of file data. It consists of three fields as shown in \tref{tab:section_fields}: an object ID referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifing the index of last byte in block node. In the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
 
 \begin{figure}[hbtp]
 \centering
@@ -126,7 +128,7 @@ modified & timestamp of last modification\\
 \toprule
 field & remark\\
 \midrule
-id & id of corresponding block\\
+ID & ID of corresponding block\\
 roll & the 32 bit rolling hash of block data\\
 omit & specify how many leading bytes in block will be omitted\\
 offset & the offset of last byte in this section\\
@@ -135,11 +137,11 @@ offset & the offset of last byte in this section\\
 \end{center}
 \end{table}
 
-    Another important field of a file node is the ``size''. It stores an integer value, representing the size of this file in bytes. When reading the file, `\textbackslash0' padding will be append to the end of files if the ``size'' value exceed the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the ``size'' value, data will be truncated. This design allows faster creation and truncate operation to a file.
+    The size fieled stores an integer value, representing the size of this file in bytes. When reading the file, `\textbackslash0' padding will be append to the end of files in read buffer if the value in the ``size'' field exceed the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the value of the ``size'' field, data will be truncated and the data exceeds the size will not be noticed by end user. This design allows faster creation and truncate operation to a file.
 
 \subsection{Directory node and subnode object}
 
-    A directory node corresponds to a directory in the file system. Directory node share similar structures with the file node, it also consists of fields that store the meta information and an array of subnode objects. The subnode object is similar to the section object in file node. A subnode object corresponds to an ``item'' under the directory. A subnode object contains a reference to the ``item'' and a string represents the display name of the ``item''. Depending on the type of node that a subnode object is referencing, the ``item'' can be a file under the directory or a sub directory.
+     A directory node corresponds to a directory in the file system. Directory nodes share similar structures with the file node, it also consists of fields that store the meta information and an array of subnode objects. The subnode object is similar to the section object in file node. A subnode object corresponds to an ``item'' under the directory. A subnode object contains a reference to the ``item'' and a string represents the display name of the ``item''. Depending on the type of node that a subnode object is referencing, the ``item'' can be a file under the directory or a sub directory.
 
 \begin{table}
 \caption{Fields in Directory Node}
@@ -168,7 +170,7 @@ modified & timestamp for last modification\\
 field & remark\\
 \midrule
 name & display name of the file or subdirectory\\
-id & id of the file or subdirectory\\
+ID & ID of the file or subdirectory\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -178,17 +180,17 @@ id & id of the file or subdirectory\\
 
 \section{File System Operations}
 
-    The file system logic module decomposes the FUSE file system calls to standard node operations defined by the internal interface. Most of the FUSE file system calls have been implemented in the Kabi File System, some of those important calls include getattr(), access(), read(), write(), rmdir(), unlink(), mkdir(), truncate(), flush(), open() and release(). Related node operations are addDirNode2db(), addFileNode2db(), addDataNode2db() and patch(). The former three methods write a node object into the database as a new node. The patch() method replaces an existing node with its new version.
+    The file system logic module decomposes the FUSE file system calls to standard node operations defined by the internal interface. Most of the FUSE file system calls have been implemented in the Kabi File System, some of those important calls include access(), getattr(), read(), write(), rmdir(), unlink(), mkdir(), truncate(), flush(), open() and release(). Related node operations are addDirNode2db(), addFileNode2db(), addDataNode2db() and patch(). The former three methods write a node object into the database as a new node. The patch() method replaces an existing node with its new version.
 
 \subsection{Read operations}
 
-    Three important read file system calls are getattr(), access() and read(). The access() function tests the existence and permission settings of a file or directory in the file system. getattr() returns the meta information about a file or directory. The read() function reads and returns binary data of given length starting at a specified offset.
+    Three important read file system calls are access(), getattr(), and read(). The access() function tests the existence and permission settings of a file or directory in the file system. getattr() returns the meta information about a file or directory. The read() function reads and returns binary data of given length starting at a specified offset.
 
     The first step of a read operation is finding the target file or directory node by its path. In order to do so, the file system parses the given path and finds all corresponding nodes on the path in order from root directory to the target. The file system will start with the root directory, continue traversing subnode list and find directories on the path one by one until the algorithm hit the target or find it nowhere.
 
-    This strategy is generally not satisfactory. Because it may introduce a performance bottleneck into the file system read operation when the target lies deep in the directory tree. In such case, a simple access() call will be mapped to a sequence of database queries on directory nodes. To solve this issue, a cache that stores the path-node relationship is introduced. It can be a cache in memory when the file system is mounted locally with FUSE's single thread option or a cache in MongoDB when multiple threads or client for consistency. With the help of the path-node cache, the file system will only query the database when the target directory or file cannot be found in the cache.
+    This strategy is generally not satisfactory. Because it may introduce a performance bottleneck into the file system read operation when the target lies deep in the directory tree. In such case, a simple access() call will be mapped to a sequence of database queries on directory nodes. To solve this issue, a cache that stores the path and corresponding node ID is introduced. It can be a cache in memory when the file system is mounted locally with FUSE's single thread option or a cache in MongoDB when multiple threads or client for consistency. With the help of the path cache, the file system no longer needs to traverse and find every directory node on the path.
 
-    The path-node cache is a move-to-front dictionary (CITE) which maps a path string to a directory node or a file node. The cache has a fixed capacity and assumes temporal locality in the access pattern. It uses move-to-front algorithm to keep frequently accessed hot item in the cache and remove those cold items that have not been accessed for long. The cache also assumes spatial locality: when accessing a file or directory, not only the file or directory itself is cached but all directories on the path, i.e., its parent and ancestor directories, also go into the cache. Thus, when touching contents under the same directory later, the file system can directly find its parent node in cache.
+    The path cache is a move-to-front dictionary \cite{mtf} which maps a path string to a integer which represents an ID of directory node or a file node. The cache has a fixed capacity and assumes temporal locality in the access pattern. It uses move-to-front algorithm to keep the ID of frequently accessed hot item in the cache and remove those cold items that have not been accessed for long. The cache also assumes spatial locality: when accessing a file or directory, not only the ID of corresponding file or directory itself is cached but all directories on the path, i.e., its parent and ancestor directories, also go into the cache. Thus, when touching contents under the same directory later, the file system can directly find its parent node in cache.
 
     Once the file node is retrieved, reading the file become straight forward. The file system will traverse the section object array to find the ID of block node associated with the read call. It will then calculate the begin and end index of the bytes of the block content that will be copied to read buffer. At last the file system will query MongoDB for block nodes and copy requested data to buffer.
 
@@ -205,7 +207,7 @@ id & id of the file or subdirectory\\
 
     Block nodes are designed to be immutable. File nodes and directory nodes use copy-on-write strategy when an overwrite is requested. So, when an overwrite to file node or directory node is requested, the file system will make a local copy of the node and apply the modification to this local copy. The file system will then upload that copy to remote and attach it to its parent directory replacing the original node as shown in the \fref{fig:cow}. In this way, the old version of the node is saved for snapshot and read operation will not accidentally read in a node that is in an incomplete state. As shown in \fref{fig:cow}, during this process, we use addNode2DB() operation to add a new node and use the patch() method to replace the old version with this new node.
 
-	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. (CITE) The flush process is atomic, guaranteed by MongoDB. 
+	When writing a file, the write request will not immediately flush data into persistent storage. Instead, the data will be written into a local write buffer. Data in write buffer will be merged and subsequent write will overwrite previous buffered data when there is an overlap. When the file system receives a close() call or an explicit flush() request, data in buffer will be truncated into blocks and uploaded to remote servers. The content in local buffer may lost due to a system failure, but user can always use a fsync or fdatasync as suggested in POSIX standrad to flush important data to remote. The flush process is atomic, guaranteed by MongoDB. 
 
 \begin{figure}[hbtp]
 \centering
@@ -218,7 +220,27 @@ id & id of the file or subdirectory\\
 
     Compared to the traditional copy-on-write snapshot file system which copies and overwrites the entire block whenever there is a byte change, this design can make use of the old block. Because the old block will be keeped for snapshot, reusing it in current view may save some storage.
 
-    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA id. There're many cases where this overhead is worthy. In the extreme case, if we overwrite 2 bytes on the boundary of two blocks right after a snapshot is taken, two new blocks will be created in classic copy-on-write snapshot system but only a 2-byte block will be added in our design. With a block size of 2,048 bytes and a file size of 20,480 byte, the saving in this case is 3,798 bytes.
+    However, there is a trade off between these savings and the overhead of such design. Each data section object requires 224 bit storage to store its SHA hash, rolling hash and begin/end indexes, each block node requires 128 bit to store its SHA ID. There're many cases where this overhead is worthy. In the extreme case, if we overwrite 2 bytes on the boundary of two blocks right after a snapshot is taken, two new blocks will be created in classic copy-on-write snapshot system but only a 2-byte block will be added in our design. With a block size of 2,048 bytes and a file size of 20,480 byte, the saving in this case is 3,798 bytes.
+
+\subsection{Consistency}
+
+    Maintaining consistency is an important task for file system. During a write call, the file system may eneter a incomplete state before the write call successfully returns. A file system should prevent a read call from reaching the incomplete state to keep consistency. There are many ways to keep a system consistent. Some of the file systems use lock to prevent a read operation when the file system is processing a write call. In our implementation, we use atomic update to prevent the incomplete state.
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig27.png}
+\caption{Consistency - within a snapshot}
+\label{fig:consist1}
+\end{figure}
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=0.8\textwidth]{Chapter-3/figs/fig28.png}
+\caption{Consistency - cross snapshots}
+\label{fig:consist2}
+\end{figure}
+
+    \fref{fig:consist1} and \fref{fig:consist2} demonstrates how we prevent incomplete state. The write process can be devide into two steps. The first step is upload, where we upload the new data node and the new version of metadata node that is going to be affected. In this step, read operations may come in at any time and obersve the old content because all new nodes are not connected to the directed graph and all old nodes haven't been modified. The second step is atomic update. This step is always atomic, guaranteed by MongoDB. In this step, the file system will change affected reference from refering the old node to new node. When a write operation only affects one snapshot. The file system will directly replace the old node with new node by update refering reference as shown in \fref{fig:consist1}. When a write operation affects more than one snapshot, the file system will upload a patch object to replace the old node with new node and then attach the object to the snapshot node in step 2.
 
 \subsection{Deduplication}
 
@@ -226,9 +248,7 @@ id & id of the file or subdirectory\\
     
     We found that not all block node creations are necessary. Consider the following scenario, when some user program is trying to create a copy of a file, the program will read in all data from the file to a buffer and then write the data in the buffer to another newly created file. As a result, the file system will experience a series of read() and write() function call, not aware that these function calls are related. File system has no way to know that the block node it is going to write already exists in the file system and can be reused.
 
-    By using SHA hash as the block node id, it is possible to find and eliminate blocks that contain duplicate data. Before a block of binary data is uploaded, the file system will query the database with its SHA hash. If a instance with same id is found, the file system will stop unloading the block node but directly return the id of existing node with same hash value.
-
-    In this way, the file system not only can perform a copy operation efficiently but also find duplicat blocks or similar file and save space. 
+    By using SHA hash as the block node ID, it is possible to find and eliminate blocks that contain duplicate data. Before a block of binary data is uploaded, the file system will query the database with its SHA hash. If a instance with same ID is found, the file system will stop unloading the block node but directly return the ID of existing node with same hash value. In this way, the file system not only can perform a copy operation efficiently but also save space for duplicat blocks. 
 
 \section{Conclusion}
 
