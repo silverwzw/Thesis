@@ -13,6 +13,8 @@
 
     FUSE, the Filesystem in User Space, is a developer framework for file system. It is originally developed for AVFS but has become a separate project. It now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system that implements this interface can adapt to kernel module VFS through FUSE and become transparent to user programs as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel. \cite{fuse}
 
+    FUSE routes the file system call from VFS in kernel space back to the user space and then lets the user program to process the file system call. It is a widely used component of Linux file system. A number of well-known projects are using FUSE, for example the OverlayFS, ntfs-3g, and vmware tools. Inspired by FUSE, there are some other userspace filesystem like Dokan under windows.
+
     There are different language bindings of FUSE. Our implementation is built on the Java bindings FUSE-JNA. The FUSE-JNA is a recent active project developed by Etienne Perot. It describs itself as ``No-nonsense, actually-working Java bindings to FUSE using JNA''. \cite{fusejna} Other Java binding of FUSE include FUSE-J, jnetfs .
 
 \section{MongoDB}
@@ -21,7 +23,17 @@
 
     MongoDB represents document in JSON (JavaScript Object Notation) format. JSON is a open, human and machine-readable standard that facilitates data interchange. Behind the scenes, MongoDB uses BSON (Binary JSON) to encode and store the documents. Bith JSON and BSON format supports embedding object and arrays within other objects and arrays. MongoDB can query and build index not only on top level keys but also nested obejects. The deveoper believes this will grant users of MongoDB ease of use and flexibility togerther with the speed and richness of a lightweight binary format.\cite{bson}
 
-\section{Snapshot Storage System}
+    MongoDB is one of the most popular NoSQL database. It has a large and active developer community. A recent \$150 million investment ensures the long term support and reflects the confidence of investors.
+
+\section{Snapshot}
+
+    A snapshot is a state of a system at a particular point in time \cite{btrfscow}. They can be either read-only or writable. Writable snapshots are also called clones. They are supported by several advanced file system like ZFS and BTRFS. The Ext4 file system also has a development branch for writable snapshot. From the user’s point of view, a read-only snapshot is an immutable and exact copy of the file system at a specific time, whereas a writable snapshot is a fork of the file system at a particular time spot. Writable snapshots allows modification to snapshots but modifications to a snapshot are separate from the origin and other snapshots. (i.e. changes to the snapshot cannot be seen in other snapshots or the origin and vice versa) With the help of writable snapshot, one can easily create and switch between different version of the file system. It can also provide file system isolation for process, software or virtual machine.
+
+\section{Copy-on-Write}
+
+    Copy-on-write is a strategy widely used in computer science. A program that uses copy-on-write strategy accesses data though a pointer or a reference. When a copy operation is requested, instead of making a copy of actual data, a program that uses copy-on-write stratergy will simply return a new reference to the original data. Only when a modification to one of the ``copies'' is requested, the program will then make a actual copy of the original data and then apply the modification to that copy. At the end, the program will point corresponding pointer or reference to the updated copy. This design not only elimiates unnecessary overhead in data copy but also ensures consistency, integrity and an easy support of transactions. In addition to those benefits, a file system using copy-on-write strategy will be able to take snapshots with low overhead. Without copy-on-write strategy, snapshots either write in-place which is more expensive, or requires special architecture in storage system like the Split-Mirror architecture.
+
+\section{Exisiting Snapshot Storage Systems}
 
     Snapshot is an important features of a storage system. Existing works include LVM snapshot, SnapFS, OverlayFS, ZFS, BTRFS, and Ext4.
     
@@ -29,7 +41,7 @@
     
     SnapFS was a file system focusing on snapshots in Linux kernel. \cite{snapfs} It is strongly coupled with its underlying Ext file system. Therefore, SnapFS is able to apply copy-on-write strategy on block but restrict its underlying file system to Ext file system family. 
     
-    OverlayFS \cite{overlayfs} is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. But OverlayFS does not restrict the type of its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as it can adapt to any storage media that has an standard file system implemented. The OverlayFS applies copy-on-write on files and directory level.
+    OverlayFS \cite{overlayfs}, also called UnionFS, is a file system popular in embedded systems, hand held devices, PDAs and smartphones. Similar to SnapFS, OverlayFS is also built upon other file systems. But OverlayFS does not restrict the type of its underlying file system as SnapFS does. This gives OverlayFS a lot flexibility as it can adapt to any storage media that has an standard file system implemented. The OverlayFS applies copy-on-write on files and directory level.
 
     BTRFS \cite{btrfs} is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them writable support copy-on-write snapshots at block level granularity \cite{btrfscow}.
     
