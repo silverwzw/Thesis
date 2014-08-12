@@ -5,7 +5,7 @@
 
     According to the Storage Networking Industry Association, three classic snapshot approachs include split-mirror, changed block, and concurrent.\cite{snapshot_types} The split-mirror approach copies every byte from source to snapshot. The process is time consuming hence it usually requires planning in advance. The changed block approach applies copy-on-write on the snapshot. The concurrent approach redirects IO request to different storage spaces associated with snapshots. Instead of making a copy and overwrite the copy, write IO request will be redirected a seperate storage space. While a read IO request will be redirected depends on whether the data has been changed since last snapshot.
 
-    Our snapshot system uses a stratergy that is a mixture of copy-on-write and redirect IO. It uses enhanced copy-on-write stratergy on actual data and Redirect IO stratergy on meta data. In our snapshot system, most snapshots do not keep a copy of the entire file system but instead log the changes since the last snapshot. Such that the snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch} The only exception is a special snapshot called head snapshot which contains contents of the entire file system at a particular time. Other snapshots are called referencing snapshot. They contain a reference to another snapshot and an array of patch objects. Each patch object in the array reflects a series of changes on a single file or a single directory since the last snapshot.
+    Our snapshot system uses a strategy that is a mixture of copy-on-write and redirect IO. It uses enhanced copy-on-write stratergy on actual data and redirect IO stratergy on meta data. In our snapshot system, all but one snapshots do not reference a copy of the entire file system but instead log the changes since the last snapshot. Such that the snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch}. The only exception is a special snapshot called head snapshot which reference contents of the entire file system at a particular time. Other snapshots are called referencing snapshot. They contain a reference to another snapshot and an array of patch objects. Each patch object in the array reflects a series of changes on a single file or a single directory since the last snapshot.
 
 \begin{figure}[t]
 \centering
@@ -16,7 +16,7 @@
 
 \section{The Snapshot Tree}
 
-	The snapshot system in Kabi File System uses a approach based on patches. Similar approach adpoted by ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. One advantage of the patch based approach is that it supports tree structured snapshots and writable snapshots.
+    The snapshot system in Kabi File System uses a approach based on patches. A similar approach adpoted by ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. One advantage of the patch based approach is that it supports tree structured snapshots and writable snapshots. With tree structured snapshots, one can fork the file system keep multiple ``current'' verison of the file system at the same time.
 
 \begin{figure}[t]
 \centering
@@ -25,7 +25,7 @@
 \label{fig:snapfs_approach}
 \end{figure}
 
-    Snapshots in the Kabi File System are represented by snapshot node and forms an up-tree. In an up-tree, all child reference or point to its parent. The following \fref{fig:snap_tree_example} shows an example of the snapshot tree. The right bottom node (node 0) is the root of the tree. The root of the snapshot tree is always the head snapshot.
+    Snapshots in the Kabi File System are represented by snapshot nodes and forms an up-tree. In an up-tree, each child references or pointis to its parent. \fref{fig:snap_tree_example} shows an example of the snapshot tree. The right bottom node (node 0) is the root of the tree. The root of the snapshot tree is always the head snapshot.
 
 \begin{figure}[t]
 \centering
@@ -49,13 +49,13 @@
 \label{fig:branches}
 \end{figure}
 
-\section{Snapsho Nodes and Patch Object}
+\section{Snapshot Nodes and Patch Object}
 
-    As mentioned in previous section, there are two types of snapshot node in this file system, namely the head snapshot node and the referencing snapshot node.
+    As mentioned in the previous section, there are two types of snapshot nodes in this file system, namely the head snapshot node and the referencing snapshot node.
 
     The head snapshot is special in the file system. It is the root of the up-tree and does not reference any other snapshots. Instead it stores the entire content of current view of main branch by referencing the directory node of the root directory. In this way, read access to the head snapshot node is straight forward and faster than any other snapshot. Because of this property, the head snapshot is recommended to represent the most frequently accessed snapshot or the current state of the default branch.
 
-    On the other hand, a referencing snapshot does not reference its own root directory but it keeps a reference to another snapshot node and an array of patch objects. The array of patch objects represent the difference in content between this referencing snapshot and the referenced snapshot. Reading a referencing snapshot will first read the file system content in referenced snapshot and then lookup the patch list to find out if the content is changed in this snapshot. To write data, the referencing snapshot uploads the changed nodes into the database, build a patch object with both ids, upload and attach the patch to snapshot node in remote. This upload and attaching process is atomic and ensures the file system will not be left in a incomplete state. Once a referencing snapshot is referenced by some other snapshot nodes, it becomes read only snapshot. \fref{fig:root_and_nonroot} shows the structure of a head snapshot node (right) and the structure of a referencing snapshot (left).
+    On the other hand, a referencing snapshot does not reference its own root directory but it keeps a reference to another snapshot node and an array of patch objects. The array of patch objects represent the difference in content between this referencing snapshot and the referenced snapshot. Reading a referencing snapshot will first read the file system content in referenced snapshot and then lookup the patch list to find out if the content is changed in this snapshot. To write data, the referencing snapshot uploads the changed nodes into the database, build a patch object with both IDs, upload and attach the patch to snapshot node in remote. This upload and attaching process is atomic and ensures the file system will not be left in a incomplete state. Once a referencing snapshot is referenced by some other snapshot nodes, it becomes read only snapshot. \fref{fig:root_and_nonroot} shows the structure of a head snapshot node (right) and the structure of a referencing snapshot (left).
     
 \begin{figure}[t]
 \centering
@@ -77,11 +77,11 @@
 
 \section{Snapshot Related Operations}
 
-    Operations in snapshot system involves read the content in a snapshot and make changes to (or write) a writeable snapshot. Make changes to the current view of the file system also involves snapshot write operation as the current view of the file system is also treated as a snapshot in Kabi file system.
+    Operations in snapshot system read the content in a snapshot and make changes to (or write) a writeable snapshot. Making changes to the current view of the file system also involves snapshot write operation as the current view of the file system is also treated as a snapshot in Kabi file system.
 
 \subsection{Read Operations}
 
-    When reading a file or a directory in the referencing snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot 1 shown in figure below, the file system will first read in ``/'' directory in head snapshot which is node 3. Then it transverses all involved snapshots (1 and 2) to see if there's a patch whose target node is node 3. Since no such patch is available, this means node 3 is the ``/'' directory node of all snapshot node (1, 2 and 3). Then the file system will look for “a” directory under node 3 and corresponding patches. In this example, there is a directory (node 9) with display name “a” under node 3 but there is also a patch to node 9 in snapshot 2. That means node 5 is the ``/a'' directory node of snapshot 0 while node 6 is the directory node for snapshot 1 and snapshot 2. Follow the same procedure, we will find node 8 is the ``/a/d.txt'' node in snapshot 2 but for snapshot 1 ``/a/d.txt'' represented by node 6.
+    When reading a file or a directory in a referencing snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot 1 shown in figure below, the file system will first read in ``/'' directory in head snapshot which is node 3. Then it transverses all involved snapshots (1 and 2) to see if there's a patch whose target node is node 3. Since no such patch is available, this means node 3 is the ``/'' directory node of all snapshot node (1, 2 and 3). Then the file system will look for “a” directory under node 3 and corresponding patches. In this example, there is a directory (node 9) with display name “a” under node 3 but there is also a patch to node 9 in snapshot 2. That means node 5 is the ``/a'' directory node of snapshot 0 while node 6 is the directory node for snapshot 1 and snapshot 2. Follow the same procedure, we will find node 8 is the ``/a/d.txt'' node in snapshot 2 but for snapshot 1 ``/a/d.txt'' represented by node 6.
 
 \begin{figure}[t]
 \centering
@@ -99,7 +99,7 @@
 \label{fig:combine_patch_list}
 \end{figure}
 
-    Not all patches in patch lists will be combined into a local patch list. Because patches are come from different patch lists, when they combine together some patches are mergeable and some are ineffective. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node $f_2$ of a patch is also the target node of another patch, these two patch object can be merged into one local patch. Another example is snapshot ($\alpha$) and ($\beta$), the two patch shown in the figure have the same target node $f_3$. When snapshot ($\alpha$) is mounted, the patch in snapshot ($\beta$) will become ineffective and will not be read in.
+    Not all patches in patch lists will be combined into a local patch list. Because patches come from different patch lists, when they combine together some patches are mergeable and some are unnecessary. For instance, in \fref{fig:merge} snapshot (a) and (b) the replacement node $f_2$ of a patch is also the target node of another patch, these two patch object can be merged into one local patch. Another example is snapshot ($\alpha$) and ($\beta$), the two patch shown in the figure have the same target node $f_3$. When snapshot ($\alpha$) is mounted, the patch in snapshot ($\beta$) will become ineffective and will not be read in.
 
 \begin{figure}[t]
 \centering
@@ -110,9 +110,9 @@
 
 \subsection{Write Operations}
 
-    In both copy-on-write snapshot system or redirect IO snapshot system, a file system entity (block, file, directory) may be referenced one or more times. Referencer could be snapshots or the ``current'' view of the file system. If an entity is referenced only once, write operation to that entity will be straight forward. This is a write operation within a snapshot. On the other hand, when an entity is referenced more than once, the snapshot system usually need special treatment to the write operation. Otherwise a direct in-place write will affect all referencer. In the snapshot system, we focus on the later case. If not otherwise specified, ``write operation'' in this section refers to those write calls whose target entities has been referenced more than once.
+    In both copy-on-write snapshot system or redirect IO snapshot system, a file system entity (block, file, directory) may be referenced one or more times. The referencer could be snapshots or the ``current'' view of the file system. If an entity is referenced only once, write operation to that entity will be straight forward. This is a write operation within a snapshot. On the other hand, when an entity is referenced more than once, the snapshot system usually need special treatment to the write operation. Otherwise a direct in-place write will affect all referencers. In the snapshot system, we focus on the later case. If not otherwise specified, ``write operation'' in this section refers to those write calls whose target entities has been referenced more than once.
 
-	\fref{fig:create_snapshots} briefly demonstrates how patch object and snapshots work with write operations. This example has 3 snapshots. Node 0 is the head snapshot node representing the current status of the main branch. Snapshot node 2 represents the initial status and node 1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
+	\fref{fig:create_snapshots} briefly demonstrates how patch objects and snapshots work with write operations. This example has 3 snapshots. Node 0 is the head snapshot node representing the current status of the main branch. Snapshot node 2 represents the initial status and node 1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
 
 \begin{figure}[t]
 \centering
@@ -121,9 +121,7 @@
 \label{fig:create_snapshots}
 \end{figure}
 
-    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branchs.
-
-    In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the head snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the head snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current state of the main branch is still the head snapshot.
+    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branchs. In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the head snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the head snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current state of the main branch is still the head snapshot.
 
 \begin{figure}[t]
 \centering
@@ -141,7 +139,7 @@
 \label{fig:take_snapshot_nonroot}
 \end{figure}
     
-    When writing a leaf referencing snapshot, the Kabi File System will submit new patches to that referencing snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the head snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the head snapshot. In order to keep its previous version X in snapshot 2, a ``reverse'' patch object (Y-to-X) will be submitted to revert node Y back to its original version X. In this way, the head snapshot will have the new version Y while all other snapshots keep the old version X. In the second example, the file system is trying to replace node X with its new version Y in snapshot 3. Compared to the first example, the file system now can simply submit a X-to-Y patch to snapshot 3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
+    When writing a snapshot other than the head snapshot, the Kabi File System will submit new patches to that referencing snapshot to reflect the change. In the first example shown in \fref{fig:write_snapshot_node}, the file system is writing the head snapshot in main branch, replacing node X with its newer version Y. Node Y will replace node X directly in the head snapshot. In order to keep its previous version X in snapshot 2, a ``reverse'' patch object (Y-to-X) will be submitted to revert node Y back to its original version X. In this way, the head snapshot will have the new version Y while all other snapshots keep the old version X. In the second example, the file system is trying to replace node X with its new version Y in snapshot 3. Compared to the first example, the file system now can simply submit a X-to-Y patch to snapshot 3. In the third example, we demonstrate a walk around to writing an internal snapshot node by creating a branch based on that internal node and write to that branch.
 
 \begin{figure}[t]
 \centering
@@ -150,7 +148,7 @@
 \label{fig:write_snapshot_node}
 \end{figure}
 
-    To create a branch based on the head snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the head snapshot directly. This is because a write operation to head snapshot will submit patches to all snapshot nodes connected to head snapshot node. Hence we wish to limit the number of snapshots connected to the head snapshot. If we fork the head snapshot directly then there will be multiple snapshot nodes connected on to the head snapshot node. \fref{fig:dummy_node} demonstrates this issue:
+    To create a branch based on the head snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the head snapshot directly. This is because a write operation to head snapshot will submit patches to all snapshot nodes connected to head snapshot node. Hence we wish to limit the number of snapshots connected to the head snapshot. If we fork the head snapshot directly then there will be multiple snapshot nodes connected on to the head snapshot node. \fref{fig:dummy_node} demonstrates this issue.
 
 \begin{figure}[t]
 \centering
@@ -176,7 +174,7 @@
 \label{fig:classic_cow}
 \end{figure}
 
-    However, in reality it is not always an ideal solution. In many use cases like insertion or deletion, a write operation only affects a few bytes instead of a whole block. But a classic file system will rewrite all successor blocks in these scenarios. A classical snapshot system will make a copy of all successor blocks despite the fact that only very few bytes is changed. The following \fref{fig:issue_classic_cow} addresses this issue. In this example, a byte is inserted into the file at offset 8. In classical copy-on-write snapshot system, 2 successor blocks are treated as changed blocks and will be copied. However, actually, the data in those blocks did not change. They only moved one byte forward. In the figure we also demonstrates a potentially better approach.
+    However, in reality it is not always an ideal solution. In many use cases, like insertion or deletion, a write operation only affects a few bytes instead of a whole block. But a classic file system will rewrite all successor blocks in these scenarios. A classical snapshot system will make a copy of all successor blocks despite the fact that only very few bytes is changed. The following \fref{fig:issue_classic_cow} addresses this issue. In this example, a byte is inserted into the file at offset 8. In classical copy-on-write snapshot system, 2 successor blocks are treated as changed blocks and will be copied. However, actually, the data in those blocks did not change. They only moved one byte forward. In the figure we also demonstrates a potentially better approach.
 
 \begin{figure}[t]
 \centering
@@ -187,9 +185,9 @@
  
     To solve this problem, we have to let the file system be aware of the true intention of the end user. This is not straightforward because the POSIX standard uses only one file system call to handle all kinds of modification to a file. The only function of this file system call is to rewrite a part of a file.
     
-    If the user program intend to insert a byte right in the middle of the file, the file system will receive a set of write calls to rewrite all later blocks in order to move original data 1 byte forward. The same behavior can also be observed when user program trying to rewrite the later half of the file. It is difficult for the file system to distinguish these two scenario. Access patterns can be used to guess the intention of an operation (i.e. an insertion usually results in a truncate call followed by a series of write() calls), but it is not an ideal solution as it depend on how the user program will behave. Therefore our major challenge is to identify the true intention of an write operation, whether should be an insertion or a complete rewrite.
+    If the user program intends to insert a byte right in the middle of the file, the file system will receive a set of write calls to rewrite all later blocks in order to move original data 1 byte forward. The same behavior can also be observed when user program trying to rewrite the later half of the file. It is difficult for the file system to distinguish these two scenario. Access patterns can be used to guess the intention of an operation (i.e., an insertion usually results in a truncate call followed by a series of write() calls), but it is not an ideal solution as it depend on how the user program will behave. Therefore, our major challenge is to identify the true intention of an write operation, whether should be an insertion or a complete rewrite.
 
-    In this chapter we will show how to accomplish this goal by using the rsync algorithm.
+    In this chapter, we will show how to accomplish this goal by using the rsync algorithm \cite{rsync_alg}.
 
 \begin{figure}[t]
 \centering
@@ -222,7 +220,7 @@
 \label{fig:rsync}
 \end{figure}
 
-    During this process, the computational overhead is only the calculation and matching of rolling checksums. An important property of rolling checksum algorithm is that successive values can be computed in $O(1)$ time, thus ensuring that all rolling checksums can be calculated in $O(n)$ time. In contrast the benefits are a significant decrease in network flow and remote storage when there is duplicate data in buffer.
+    During this process, the computational overhead is only the calculation and matching of rolling checksums. An important property of rolling checksum algorithm is that successive values can be computed in $O(1)$ time, thus ensuring that all rolling checksums can be calculated in $O(n)$ time. In contrast, the benefits are a significant decrease in network flow and remote storage when there is duplicate data in buffer.
 
 \section{Conclusion}
 
