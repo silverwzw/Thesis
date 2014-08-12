@@ -3,9 +3,9 @@
 
     One of the major features in Kabi File System is the writable copy-on-write snapshot. A snapshot is a point-in-time copy of a defined collection of data \cite{snapshot_def}. A read only snapshot is an immutable copy of the file system data at a time spot, while a writable snapshot can be considered as a writable fork of such copy. Snapshot nodes are designed as the basic components of Kabi File System. The ``current'' view of the file system is also treated as a writable snapshot (the latest snapshot in default branch). This snapshot system focuses on reducing the storage space occupied by a snapshot.
 
-    According to the Storage Networking Industry Association, three classic snapshot approachs include split-mirror, changed block, and concurrent.\cite{snapshot_types} The split-mirror approach copies every byte from source to snapshot. The process is time consuming hence it usually requires planning in advance. The changed block approach applies copy-on-write on the snapshot. The concurrent approach redirects IO request to different storage spaces associated with snapshots. Instead of making a copy and overwrite the copy, write IO request will be redirected a seperate storage space. While a read IO request will be redirected depends on whether the data has been changed since last snapshot.
+    According to the Storage Networking Industry Association, three classic snapshot approachs include split-mirror, changed block, and concurrent.\cite{snapshot_types} The split-mirror approach copies every byte from source to snapshot. The process is time consuming hence it usually requires planning in advance. The changed block approach applies copy-on-write on the snapshot. The concurrent approach redirects IO request to different storage spaces associated with snapshots. Instead of making a copy and overwrite the copy, write IO request will be redirected a separate storage space. While a read IO request will be redirected depends on whether the data has been changed since last snapshot.
 
-    Our snapshot system uses a strategy that is a mixture of copy-on-write and redirect IO. It uses enhanced copy-on-write stratergy on actual data and redirect IO stratergy on meta data. In our snapshot system, all but one snapshots do not reference a copy of the entire file system but instead log the changes since the last snapshot. Such that the snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch}. The only exception is a special snapshot called head snapshot which reference contents of the entire file system at a particular time. Other snapshots are called referencing snapshot. They contain a reference to another snapshot and an array of patch objects. Each patch object in the array reflects a series of changes on a single file or a single directory since the last snapshot.
+    Our snapshot system uses a strategy that is a mixture of copy-on-write and redirect IO. It uses enhanced copy-on-write strategy on actual data and redirect IO strategy on metadata. In our snapshot system, all but one snapshots do not reference a copy of the entire file system but instead log the changes since the last snapshot. Such that the snapshot system can then recover the content of the a snapshot based on the previous snapshot and the log of changes, as shown in \fref{fig:snapshot_patch}. The only exception is a special snapshot called head snapshot which reference contents of the entire file system at a particular time. Other snapshots are called referencing snapshot. They contain a reference to another snapshot and an array of patch objects. Each patch object in the array reflects a series of changes on a single file or a single directory since the last snapshot.
 
 \begin{figure}[t]
 \centering
@@ -16,7 +16,7 @@
 
 \section{The Snapshot Tree}
 
-    The snapshot system in Kabi File System uses a approach based on patches. A similar approach adpoted by ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. One advantage of the patch based approach is that it supports tree structured snapshots and writable snapshots. With tree structured snapshots, one can fork the file system keep multiple ``current'' verison of the file system at the same time.
+    The snapshot system in Kabi File System uses a approach based on patches. A similar approach adopted by ext3cow uses a reserved field in inode to reference the previous version inode shown in \fref{fig:snapfs_approach}. One advantage of the patch based approach is that it supports tree structured snapshots and writable snapshots. With tree structured snapshots, one can fork the file system keep multiple ``current'' verison of the file system at the same time.
 
 \begin{figure}[t]
 \centering
@@ -25,7 +25,7 @@
 \label{fig:snapfs_approach}
 \end{figure}
 
-    Snapshots in the Kabi File System are represented by snapshot nodes and forms an up-tree. In an up-tree, each child references or pointis to its parent. \fref{fig:snap_tree_example} shows an example of the snapshot tree. The right bottom node (node 0) is the root of the tree. The root of the snapshot tree is always the head snapshot.
+    Snapshots in the Kabi File System are represented by snapshot nodes and forms an up-tree. In an up-tree, each child references or points to its parent. \fref{fig:snap_tree_example} shows an example of the snapshot tree. The right bottom node (node 0) is the root of the tree. The root of the snapshot tree is always the head snapshot.
 
 \begin{figure}[t]
 \centering
@@ -38,9 +38,9 @@
     
     After a snapshot is taken, a new snapshot node (node 1 in \fref{fig:snap_tree_example}) is created referring to the head snapshot node. Subsequent write operations will not only write data into the head snapshot but also submit patches to all snapshot connected to head snapshot, so as to reflect the difference between snapshot node 1 and its referencing node 0.
 
-    Branching a snapshot creates a writable copy of a existing snapshot. The branching operation is implemented by creating a new snapshot node referring the snapshot being forked. As shown in \fref{fig:snap_tree_example}, node 3 (the writable copy) is created and connected to snapshot node 2 (the exisiting snapshot) in order to fork the file system based on snapshot 2.
+    Branching a snapshot creates a writable copy of a existing snapshot. The branching operation is implemented by creating a new snapshot node referring the snapshot being forked. As shown in \fref{fig:snap_tree_example}, node 3 (the writable copy) is created and connected to snapshot node 2 (the existing snapshot) in order to fork the file system based on snapshot 2.
 
-    In the snapshot tree, each writable snapshot correspond to a branch. A branch consists of the writable snapshot (the current status of the branch) and its historical snapshots (the history of the branch). The main branch is the branch where the head snapshot node lies. \fref{fig:branches} shows the idea of branch. in the example, there are two branches in this 5-node snapshot tree. Node 0 is the root of the uptree so corresponds to the head snapshot. Thus node 1, node 2, and node 0 form the main branch. In the figure, nodes on the left corresponds to an older snapshot and nodes on the right corresponds to a more recent snapshot. Therefore in main branch, node 1 is the oldest snapshot while node 0 represents the latest state. Node 1 and Node 2 form the history of main branch and node 0 is the current view of main branch. Node 4 is another writable snapshot and it belongs to a side branch. The side branch consists of node 1 (the oldest), node 2 (the second oldest), node 3 (the third oldest), and node 4 (most recent). Note that arrows between nodes reflect the referencing relations between snapshots, not the order of creation.
+    In the snapshot tree, each writable snapshot correspond to a branch. A branch consists of the writable snapshot (the current status of the branch) and its historical snapshots (the history of the branch). The main branch is the branch where the head snapshot node lies. \fref{fig:branches} shows the idea of branch. In the example, there are two branches in this 5-node snapshot tree. Node 0 is the root of the up-tree so corresponds to the head snapshot. Thus node 1, node 2, and node 0 form the main branch. In the figure, nodes on the left corresponds to an older snapshot and nodes on the right corresponds to a more recent snapshot. Therefore in main branch, node 1 is the oldest snapshot while node 0 represents the latest state. Node 1 and Node 2 form the history of main branch and node 0 is the current view of main branch. Node 4 is another writable snapshot and it belongs to a side branch. The side branch consists of node 1 (the oldest), node 2 (the second oldest), node 3 (the third oldest), and node 4 (most recent). Note that arrows between nodes reflect the referencing relations between snapshots, not the order of creation.
 
 \begin{figure}[t]
 \centering
@@ -66,7 +66,7 @@
 
     A patch object reflects a single or a series of modification to a single node. The node can be either file node or one node. The patch object references a pair of file nodes or directory nodes. The two nodes referred are the target node (original version) and its replacement (changed version).
 
-    \fref{fig:patches} demonstrates the way the patch systemworks. Snapshot 1 and 2 demonstrates how a directory changes between snapshots. The directory that is represented by node $d_2$ in snapshot 2 is now replaced by directory node $d_1$ in snapshot 1. In snapshot 2, the directory has a new subdirectory but the file under that directory remains unchanged. Hence the target node (node $d_2$) and replacement node (node $d_1$) have a reference to the same file node but the target node $d_2$ has one more reference to a directory node. In the example of snapshot ($a$) and snapshot ($b$), a file changes in both snapshot, its original version is $f_1$, the intermedia version in snapshot ($b$) is $f_2$ and final version is $f_3$ in snapshot ($a$). In snapshot $\alpha$ and snapshot $\beta$, file $f_3$ is replaced by $f_2$ in snapshot ($\beta$) and replaced by $f_1$ in snapshot ($\alpha$).  
+    \fref{fig:patches} demonstrates the way the patch system works. Snapshot 1 and 2 demonstrates how a directory changes between snapshots. The directory that is represented by node $d_2$ in snapshot 2 is now replaced by directory node $d_1$ in snapshot 1. In snapshot 2, the directory has a new subdirectory but the file under that directory remains unchanged. Hence the target node (node $d_2$) and replacement node (node $d_1$) have a reference to the same file node but the target node $d_2$ has one more reference to a directory node. In the example of snapshot ($a$) and snapshot ($b$), a file changes in both snapshot, its original version is $f_1$, the intermediate version in snapshot ($b$) is $f_2$ and final version is $f_3$ in snapshot ($a$). In snapshot $\alpha$ and snapshot $\beta$, file $f_3$ is replaced by $f_2$ in snapshot ($\beta$) and replaced by $f_1$ in snapshot ($\alpha$).  
 
 \begin{figure}[t]
 \centering
@@ -81,7 +81,7 @@
 
 \subsection{Read Operations}
 
-    When reading a file or a directory in a referencing snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches} , to read the file ``/a/d.txt'' in snapshot 1 shown in figure below, the file system will first read in ``/'' directory in head snapshot which is node 3. Then it transverses all involved snapshots (1 and 2) to see if there's a patch whose target node is node 3. Since no such patch is available, this means node 3 is the ``/'' directory node of all snapshot node (1, 2 and 3). Then the file system will look for “a” directory under node 3 and corresponding patches. In this example, there is a directory (node 9) with display name “a” under node 3 but there is also a patch to node 9 in snapshot 2. That means node 5 is the ``/a'' directory node of snapshot 0 while node 6 is the directory node for snapshot 1 and snapshot 2. Follow the same procedure, we will find node 8 is the ``/a/d.txt'' node in snapshot 2 but for snapshot 1 ``/a/d.txt'' represented by node 6.
+    When reading a file or a directory in a referencing snapshot, the file system must to do a large number of lookup in patch lists to ensure that the file system is referring to the correct version of the node. For instance, in \fref{fig:read_patches}, to read the file ``/a/d.txt'' in snapshot 1 shown in figure below, the file system will first read in ``/'' directory in head snapshot which is node 3. Then it transverses all involved snapshots (1 and 2) to see if there's a patch whose target node is node 3. Since no such patch is available, this means node 3 is the ``/'' directory node of all snapshot node (1, 2 and 3). Then the file system will look for “a” directory under node 3 and corresponding patches. In this example, there is a directory (node 9) with display name “a” under node 3 but there is also a patch to node 9 in snapshot 2. That means node 5 is the ``/a'' directory node of snapshot 0 while node 6 is the directory node for snapshot 1 and snapshot 2. Follow the same procedure, we will find node 8 is the ``/a/d.txt'' node in snapshot 2 but for snapshot 1 ``/a/d.txt'' represented by node 6.
 
 \begin{figure}[t]
 \centering
@@ -90,7 +90,7 @@
 \label{fig:read_patches}
 \end{figure}
 
-    As one can see, read operations rely on the patch lookup operation. To avoid query and traverse all involved snapshot and patch objects on every read operation, a local patch list is built and stored as hashtable in memory when a referencing snapshot node is mounted. The local patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot 3, a local patch list that contains all effective patches in snapshot 3 and 2 is created.
+    As one can see, read operations rely on the patch lookup operation. To avoid query and traverse all involved snapshot and patch objects on every read operation, a local patch list is built and stored as hash table in memory when a referencing snapshot node is mounted. The local patch list combines all patches that may be used for a node lookup. In the example shown in \fref{fig:combine_patch_list}, when mounting snapshot 3, a local patch list that contains all effective patches in snapshot 3 and 2 is created.
 
 \begin{figure}[t]
 \centering
@@ -121,7 +121,7 @@
 \label{fig:create_snapshots}
 \end{figure}
 
-    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branchs. In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the head snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the head snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current state of the main branch is still the head snapshot.
+    \fref{fig:take_snapshot_root} and \fref{fig:take_snapshot_nonroot} shows how to take snapshots on the main branch and side branches. In order to take a new snapshot on the main branch, the file system will create a new snapshot node in between the head snapshot and its adjacent snapshot node. This newly created snapshots will have an empty patch list referencing the head snapshot. This new snapshot node will represent the status of this branch at the time it is created. The current state of the main branch is still the head snapshot.
 
 \begin{figure}[t]
 \centering
@@ -202,7 +202,7 @@
     
     The rsync algorithm is originally designed for the efficient update of data over a high latency and low bandwidth link. Compared to brute force search and string search algorithms, rsync algorithm is much faster in practice and requires less data exchange between the remote server and local machine. These features make it suitable for a distributed file system. Because both time consuming file system and a high bandwidth consumption file system will become a bottleneck in the operating system.
 
-    The basic flow of the rsync algorithm is to split the remote file into blocks of length $S$, calculate their rolling checksum and then send their them to the local machine. The local machine will search through local file to find all blocks of length $S$ bytes (at any offset, not just multiples of $S$) that matches the received rolling checksum. This can be done in a single pass very quickly since the rolling checksum only requires $O(1)$ time to compute checksum at offset k given the checksum at offset $k-1$.
+    The basic flow of the rsync algorithm is to split the remote file into blocks of length $S$, calculate their rolling checksum and then send them to the local machine. The local machine will search through local file to find all blocks of length $S$ bytes (at any offset, not just multiples of $S$) that matches the received rolling checksum. This can be done in a single pass very quickly since the rolling checksum only requires $O(1)$ time to compute checksum at offset k given the checksum at offset $k-1$.
 
 \subsection{Enhancing the space efficiency}
 
@@ -224,4 +224,5 @@
 
 \section{Conclusion}
 
-   In this chapter, we present the basic idea of this snapshot system and discuess some implementation details of the snapshot subsystem in Kabi File System. We demonstrated our efforts to make the snapshot system efficient in space usage. We also introduced the rsync algorithm to improve the snapshot system and the network performance.
+   In this chapter, we present the basic idea of this snapshot system and discuss some implementation details of the snapshot subsystem in Kabi File System. We demonstrated our efforts to make the snapshot system efficient in space usage. We also introduced the rsync algorithm to improve the snapshot system and the network performance.
+
