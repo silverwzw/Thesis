@@ -1,13 +1,13 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-    In this thesis, we presented the design of a new distributed file system built on document oriented NoSQL database with snapshot capability. We also built a proof of concept implementation of such design using MongoDB, FUSE and other techniques. We designed and implemented a new patch based snapshot system and try to improve its efficiency in many ways. We evaluated the snapshot system by testing variables that affects the efficiency of the snapshot and file system deduplication. We also came up with some explanation of how those effects.
+    In this thesis, we presented the design of a new distributed file system built on document oriented NoSQL database with snapshot capability. We also built a proof of concept implementation of such design using MongoDB, FUSE and other techniques. We designed and implemented a new patch based snapshot system and try to improve its efficiency in many ways. We evaluated the snapshot system by testing variables that effect the efficiency of the snapshot and file system deduplication. We also came up with some explanation of how variables effect the performance.
 
     We believe the major contribution of this thesis are the design of a distributed file system based on document oriented database, the design of the patch based snapshot subsystem, and the evaluation of such design.
 
 \section{Future work}
 
-    Due to time constrains, the design of Kabi File system contains several flaws. Some possible fixes or enhancements to the Kabi File System are discussed below.
+    The Kabi File System is a prototype file system and our implementation is not perfect. There are possible fixes or enhancements to the Kabi File System. Some of them are discussed below.
     
     \textbf{Using native FUSE instead of FUSE-JNA.} As discussed in \cref{chap:perform}, the file system uses FUSE-JNA to connect the file system logic with fuse library. FUSE-JNA is a good language binding for Java development, but it is slow in performance \cite{fusejna}. A FUSE-JNA wrapped ext4 is almost 1,000 times slower than the native ext4 according to our tests. Thus we believe by replacing FUSE-JNA with original fuse C library, we will observe improvement in performance.
 
