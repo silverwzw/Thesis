@@ -1,11 +1,13 @@
 %% ------------------------------ Abstract ---------------------------------- %%
 \begin{abstract}
 
-%\lipsum[1-6]
+File system is an important component of a operating system. It defines the way how data is stored and retrived and its performance and efficiency affect the operating system.
 
+In this study, we design, implement and validate a new file system over FUSE. The file system is a distributed file system with snapshot capability, based on MongoDB. We introduce a patch-based new strategy to store snapshots. Further, we apply the rsync algorithm to enhance the efficiency of classic copy-on-write snapshot as well as the network performance. In addition we studied the performance and the effect of some factors that affect the efficiency of rsync enhanced copy-on-write snapshot.
+
+Test results indicate that the file system we proposed has a comparable performance to the popular network file system NFS. Futhermore, it shows that the rsync enhanced copy-on-write snapshot system can boost the space efficiency of the snapshot system comapred to classic copy-on-write snapshot system. 
 
 \end{abstract}
-
 
 %% ---------------------------- Copyright page ------------------------------ %%
 %% Comment the next line if you don't want the copyright page included.
