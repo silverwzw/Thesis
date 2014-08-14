@@ -110,12 +110,12 @@
 
     In both copy-on-write snapshot system or redirect IO snapshot system, a file system entity (block, file, directory) may be referenced one or more times. The referencer could be snapshots or the ``current'' view of the file system. If an entity is referenced only once, write operation to that entity will be straight forward. This is a write operation within a snapshot. On the other hand, when an entity is referenced more than once, the snapshot system usually need special treatment to the write operation. Otherwise a direct in-place write will affect all referencers. In the snapshot system, we focus on the later case. If not otherwise specified, ``write operation'' in this section refers to those write calls whose target entities has been referenced more than once.
 
-	\fref{fig:create_snapshots} briefly demonstrates how patch objects and snapshots work with write operations. This example has 3 snapshots. Node H is the head snapshot node representing the current status of the main branch. Snapshot node 2 represents the initial status and node 1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
+	\fref{fig:create_snapshots} briefly demonstrates how patch objects and snapshots work with write operations. This example has three snapshots. Node H is the head snapshot node representing the current status of the main branch. Snapshot node 2 represents the initial status and node 1 is the intermediate status of main branch. Initially, the file system contains three directory ``/'', ``/a'', ``/b'' and two files ``/a/c.txt'', ``/a/d.txt''. In between the initial snapshot and the next snapshot, file ``/a/d.txt'' was overwritten so its representing node is changed by a patch. After snapshot 2 is taken, the file ``/a/d.txt'' was deleted. A new patch is attached to snapshot 2 to reflect this change.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{Chapter-4/figs/fig26.png}
-\caption{Example: Create Snapshots}
+\caption{Example: Create Snapshot after Write}
 \label{fig:create_snapshots}
 \end{figure}
 
@@ -146,7 +146,7 @@
 \label{fig:write_snapshot_node}
 \end{figure}
 
-    To create a branch based on the head snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the head snapshot directly. This is because a write operation to head snapshot will submit patches to all snapshot nodes connected to head snapshot node. Hence we wish to limit the number of snapshots connected to the head snapshot. If we fork the head snapshot directly then there will be multiple snapshot nodes connected on to the head snapshot node. \fref{fig:dummy_node} demonstrates this issue.
+    To create a branch based on the head snapshot, it is recommended to create a dummy snapshot first and then fork from that dummy node rather than branching the head snapshot directly. This is because a write operation to head snapshot will submit patches to all snapshot nodes connected to head snapshot node. Hence we wish to limit the number of snapshots connected to the head snapshot. If we fork the head snapshot directly then there will be multiple snapshot nodes connected on to the head snapshot node. \fref{fig:dummy_node} demonstrates this issue. In the upper case, with dummy snapshot node (node 2), a write operation to head snapshot (node 0) only submits a patch to the dummy node. But in the lower case, when there is no dummy node, a write operation to the head node has to submit two identical patches to node 1 and node 3.
 
 \begin{figure}[t]
 \centering
