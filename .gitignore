@@ -6,4 +6,5 @@
 *.log
 *.toc
 *.pdf
+!thesis.pdf
 *.swp

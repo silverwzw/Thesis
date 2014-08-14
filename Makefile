@@ -17,4 +17,4 @@ view :
 	evince $(NAME).pdf &
 
 edit:
-	vim $(CHAPTERS) thesis.bib thesis.tex
+	vim $(CHAPTERS) thesis.bib thesis.tex front.tex
