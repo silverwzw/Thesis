@@ -15,7 +15,6 @@
     As shown in \fref{fig:modules}, the Kabi File System has two internal modules and an internal interface in-between. The design is for replaceable modules. The internal interface defines some primary data structures and a set of standard operations on these data structures. The file system logic module decomposes any incoming file system call to a series of standard operations. While the storage abstraction module abstracts the underlying storage media to the primary data structures and exposes a set of method that implements the standard operations.
 
 \begin{table}[t]
-\label{tab:data_struct}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -29,6 +28,7 @@ Snapshot Node & Stores metadata of a snapshot\\
 \end{tabular}
 \end{center}
 \caption{Primary Data Structures}
+\label{tab:data_struct}
 \end{table}
 
     The user program communicates with the file system logic module through operating system's file system APIs. Therefore, we can have different implementations of file system logic module for different file system API (e.g., FUSE, Dokan, POSIX). The storage abstraction module operates the underlying storage media through its driver, protocol or API. We can also have different implementations of storage abstraction module for different storage media (e.g. MongoDB, Volume manager, Amazon S3 service). By using this design, we can easily migrate the file system to other operating system (by changing the file system logic module) or other underlying storage media (by replacing the storage abstraction module). In our proof-of-concept implementation, the file system logic module is built on FUSE and the storage abstraction module is written for MongoDB. 
@@ -66,7 +66,6 @@ Snapshot Node & Stores metadata of a snapshot\\
     A block node is a representation of fixed-size data. That size of data represented by the node is called representation size. The rep-size is an immutable parameter which is determined on file system initialization. Different instance of Kabi file system can have different rep-size. Although rep-size is fixed, a block node does not have to actually store that amount. If the size of data stored in block node is smaller than rep-size, i.e. there's insufficient data, the file system logic module will get the data with `\textbackslash0' padding from the storage abstraction module. The fixed rep-size is to ensure that each rolling hash correspond to exact one block node since the rolling hash is a function on fixed length data. While the variable actual data length is designed to make ``truncated section'' (discussed in \cref{chap:snapshot}) more efficient. In addition to the data field, the other filed of a block node is a 128-bit hash of the byte string. This field is for deduplication and will be discussed in later section. The structure of a typical block node is shown in \tref{tab:block_fields}.
 
 \begin{table}[t]
-\label{tab:block_fields}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -78,6 +77,7 @@ data & the block data\\
 \end{tabular}
 \end{center}
 \caption{Fields in Block Node}
+\label{tab:block_fields}
 \end{table}
 
 \subsection{File Node and Section Object}
@@ -93,7 +93,6 @@ data & the block data\\
 
 
 \begin{table}[t]
-\label{tab:file_fields}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -109,6 +108,7 @@ modified & timestamp of last modification\\
 \end{tabular}
 \end{center}
 \caption{Fields in File Node}
+\label{tab:file_fields}
 \end{table}
 
     As mentioned above, a file node has an array of section object. Each section object is a substructure of file node and represents a section of file data. It consists of three fields as shown in \tref{tab:section_fields}: an object ID referring to the associate block node, an integer value specifies the number of omitted leading bytes, and another integer value specifying the index of last byte in block node. In the example shown in \fref{fig:section_and_block}, for the second block, the number of omitted leading bytes is 1, and the index of the last byte in block is 5.
@@ -121,7 +121,6 @@ modified & timestamp of last modification\\
 \end{figure}
 
 \begin{table}[t]
-\label{tab:section_fields}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -135,6 +134,7 @@ offset & the offset of last byte in this section\\
 \end{tabular}
 \end{center}
 \caption{Fields in Section Object}
+\label{tab:section_fields}
 \end{table}
 
     The size field stores an integer value, representing the size of this file in bytes. When reading the file, `\textbackslash0' padding will be append to the end of files in read buffer if the value in the ``size'' field exceed the total number of bytes in its data sections. On the contrary, if the total number of bytes in data sections exceeds the value of the ``size'' field, data will be truncated and the data exceeds the size will not be noticed by end user. This design allows faster creation and truncate operation to a file.
@@ -144,7 +144,6 @@ offset & the offset of last byte in this section\\
      A directory node corresponds to a directory in the file system. Directory nodes share similar structures with the file node, it also consists of fields that store the metadata and an array of subnode objects. The subnode object is similar to the section object in file node. A subnode object corresponds to an ``item'' under the directory. A subnode object contains a reference to the ``item'' and a string represents the display name of the ``item''. Depending on the type of node that a subnode object is referencing, the ``item'' can be a file under the directory or a sub directory.
 
 \begin{table}[t]
-\label{tab:dir_fields}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -159,10 +158,10 @@ modified & timestamp for last modification\\
 \end{tabular}
 \end{center}
 \caption{Fields in Directory Node}
+\label{tab:dir_fields}
 \end{table}
 
 \begin{table}[t]
-\label{tab:subnode_fields}
 \begin{center}
 \begin{tabular}{ll}
 \toprule
@@ -174,6 +173,7 @@ ID & ID of the file or subdirectory\\
 \end{tabular}
 \end{center}
 \caption{Fields in Subnode Object}
+\label{tab:subnode_fields}
 \end{table}
 
     Other important data structures are snapshot node and patch object. These two structures are related to the snapshot system and will be discussed in \cref{chap:snapshot}.

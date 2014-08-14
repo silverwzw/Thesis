@@ -14,7 +14,6 @@
     The file system test results are shown in \tref{tab:fs_performance}. The result shows that although as a local file system the Kabi File System is not as good as Ext4, but as a disitributed file system it is comparable to NFS.
 
 \begin{table}[t]
-\label{tab:fs_performance}
 \begin{center}
 \begin{threeparttable}
 \begin{tabular}{|c|c|c|c|c|c|c|}
@@ -42,6 +41,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
 \end{threeparttable}
 \end{center}
 \caption{File System Performance Test}
+\label{tab:fs_performance}
 \end{table}
 
 \section {Efficiency of Snapshot and Deduplication}
@@ -79,7 +79,6 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
     This result is not difficult to explain. Because there is not much duplicated data in the overwrite scenario, SHA hashes and rolling checksums become overheads. This makes the performance of Kabi File System slightly less than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach cannot detect and make use of these duplicated data. So the Kabi File System have a better performance when it comes to insertion. The Kabi File System is optimized for efficient insertation. The test shows that it does performs better than classic copy-and-write strategy.
 
 \begin{table}[t]
-\label{tab:sample_result}
 \begin{center}
 \begin{tabular}{|c|c|c|cccc|}
 \hline
@@ -93,6 +92,7 @@ block size & file size & truncated section & \multicolumn{1}{c|}{classic} & \mul
 \end{tabular}
 \end{center}
 \caption{Sample result of the experiment}
+\label{tab:sample_result}
 \end{table}
 
 \subsection{Block Size and File Size}
@@ -104,7 +104,6 @@ block size & file size & truncated section & \multicolumn{1}{c|}{classic} & \mul
     The data in column 5 reflects the fact that an increase in file-size-to-block-size ratio will result in an improvement in efficiency. The reason is that the proportion of \emph{extra} metadata will reduces as the file size increases. For example, an overwrite operation can result in at most two additional sections added to the file node. This is an extra 56-byte metadata overhead. Compared to a 704-byte file, such overhead is large (almost 8\%). On the other hand, if the file size is 14,008 bytes, this overhead (metadata of 2 extra section) can be omitted (about 0.4\%).
 
 \begin{table}[t]
-\label{tab:fb_ratio}
 \begin{center}
 \begin{tabular}{|c|c|c|cccc|}
 \hline
@@ -122,6 +121,7 @@ block size & file size & truncated section & \multicolumn{1}{c|}{classic} & \mul
 \end{tabular}
 \end{center}
 \caption{File Size to Block Size ratio}
+\label{tab:fb_ratio}
 \end{table}
 
 \subsection{Truncate Ratio}
@@ -133,7 +133,6 @@ block size & file size & truncated section & \multicolumn{1}{c|}{classic} & \mul
     In this experiment, we explicitly set the size of truncated section to be half of the block size. That means for a Kabi File System with a 128-byte block size, the overhead (28 bytes) in metadata is almost half of the data contains in truncated section. In other words, for every 2 bytes stored in truncated section, there is 1 extra byte cost in metadata. Since the increase in truncated-to-untruncated ratio implies more truncated section which is less efficient, this explains the significant decrease in efficiency in column 5 of \tref{tab:truncate_ratio}.
 
 \begin{table}[t]
-\label{tab:truncate_ratio}
 \begin{center}
 \begin{tabular}{|c|c|c|cccc|}
 \hline
@@ -155,6 +154,7 @@ block size & file size & truncated section & \multicolumn{1}{c|}{classic} & \mul
 \end{tabular}
 \end{center}
 \caption{Truncate Ratio}
+\label{tab:truncate_ratio}
 \end{table}
 
 \section{Conclusion}
