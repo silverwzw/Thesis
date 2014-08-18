@@ -12,11 +12,11 @@
 \section{FUSE}
 
     FUSE, the Filesystem in User Space, is a developer framework for file system. It was originally developed for AVFS (virtual file system that allows all users
-to look inside archived or compressed files, or access remote files)~\cite{avfs} but has become a separate project. It has now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system with this interface can get file system call from kernel module VFS (the Virtual File System)~\cite{vfs}. Such that a user programs is able to use standard file system call to access it as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel~\cite{fuse}.
+to look inside archived or compressed files, or access remote files)~\cite{avfs} but has become a separate project. It has now been adopted into the Linux kernel and has many ports on other Unix-like operating systems. FUSE provides a programming interface that is very similar to POSIX file operations. A file system with this interface can get file system calls from kernel module VFS (the Virtual File System)~\cite{vfs}. Such that a user programs is able to use standard file system call to access it as if the file system is supported by operating system natively. By running the file system in user space, FUSE isolates the file system from operating system. In such a way, developers of the file system do not need to understand complicated kernel code or to debug in the kernel~\cite{fuse}.
 
     FUSE routes the file system call from VFS in kernel space back to the user space and then lets the user program to process the file system call. It is a widely used component of Linux file system. A number of well-known projects are using FUSE, for example the OverlayFS, ntfs-3g, and vmware tools. Inspired by FUSE, there are some other user space file system like Dokan under windows.
 
-    There are different language bindings of FUSE. Our implementation is built on the Java bindings FUSE-JNA. The FUSE-JNA is a recent active project developed by Etienne Perot. It describes itself as ``No-nonsense, actually-working Java bindings to FUSE using JNA''~\cite{fusejna}. Other Java binding of FUSE include FUSE-J, jnetfs~\cite{jnetfs}.
+    There are different language bindings of FUSE. Our implementation is built on the Java bindings FUSE-JNA. The FUSE-JNA is a recent active project developed by Etienne Perot. The author describes his project as ``No-nonsense, actually-working Java bindings to FUSE using JNA''~\cite{fusejna}. Other Java bindings of FUSE include FUSE-J, jnetfs~\cite{jnetfs}.
 
 \section{MongoDB}
 
@@ -24,7 +24,7 @@ to look inside archived or compressed files, or access remote files)~\cite{avfs}
 
     MongoDB represents document in JSON (JavaScript Object Notation) format. JSON is a open, human and machine-readable standard that facilitates data interchange. Behind the scenes, MongoDB uses BSON (Binary JSON) to encode and store the documents. Both JSON and BSON format supports embedding object and arrays within other objects and arrays. MongoDB can query and build index not only on top level keys but also nested objects. The developer believes this will grant users of MongoDB ease of use and flexibility together with the speed and richness of a lightweight binary format~\cite{bson}.
 
-    MongoDB is one of the most popular NoSQL database. It has a large and active developer community. A recent \$150 million investment ensures the long term support and reflects the confidence of investors.
+    MongoDB is one of the most popular NoSQL database. It has a large and active developer community. A recent \$150 million investment ensures the long term support and reflects the confidence of investors~\cite{mongInvest}.
 
 \section{Snapshot}
 
@@ -32,7 +32,7 @@ to look inside archived or compressed files, or access remote files)~\cite{avfs}
 
 \section{Copy-on-Write}
 
-    Copy-on-write is a strategy widely used in computer science. A program that uses copy-on-write strategy accesses data though a pointer or a reference. When a copy operation is requested, instead of making a copy of actual data, a program that uses copy-on-write strategy will simply return a new reference to the original data. Only when a modification to one of the ``copies'' is requested, the program will then make a actual copy of the original data and then apply the modification to that copy. At the end, the program will point corresponding pointer or reference to the updated copy. This design not only eliminates unnecessary overhead in data copy but also ensures consistency, integrity and an easy support of transactions. In addition to those benefits, a file system using copy-on-write strategy will be able to take snapshots with low overhead. Without copy-on-write strategy, snapshots either write in-place which is more expensive, or requires special architecture in storage system like the Split-Mirror architecture.
+    Copy-on-write is a strategy widely used in computer science. A program that uses copy-on-write strategy accesses data though a pointer or a reference. When a copy operation is requested, instead of making a copy of actual data, a program that uses copy-on-write strategy will simply return a new reference to the original data. Only when a modification to one of the ``copies'' is requested, the program will then make an actual copy of the original data and then apply the modification to that copy. At the end, the program will point corresponding pointer or reference to the updated copy. This design not only eliminates unnecessary overhead in data copy but also ensures consistency, integrity and an easy support of transactions. In addition to those benefits, a file system using copy-on-write strategy will be able to take snapshots with low overhead. Without copy-on-write strategy, snapshots either write in-place which is more expensive, or requires special architecture in storage system like the Split-Mirror architecture.
 
 \section{Existing Snapshot Storage Systems}
 
@@ -46,7 +46,7 @@ to look inside archived or compressed files, or access remote files)~\cite{avfs}
 
     BTRFS~\cite{btrfs} is an experimental file system developed by Oracle. It is inspired by the well-known Solaris file system ZFS and shares a lot of similarity with ZFS. Both of them usese copy-on-write snapshots at block level granularity~\cite{btrfscow}.
     
-    Ext4 file system was extends to include a snapshot subsystem that applies copy-on-write strategy on block level. A writable snapshot feature for Ext4 is currently under development by the same group of developer~\cite{ext4snap}. It is inspired by CTERA Network's NEXT3 file system which is a clone of ext3 file system with built-in support for snapshots.
+    Ext4 file system was extended to include a snapshot subsystem that applies copy-on-write strategy on block level. A writable snapshot feature for Ext4 is currently under development by the same group of developer~\cite{ext4snap}. It is inspired by CTERA Network's NEXT3 file system which is a clone of ext3 file system with built-in support for snapshots.
 
 \section{The Rsync Algorithm}
     
