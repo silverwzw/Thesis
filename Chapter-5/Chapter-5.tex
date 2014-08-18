@@ -48,7 +48,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
 
     This section will focus on the space efficiency of the snapshot system. We are going to measure the space efficiency of the snapshot system by estimating the average space cost of a snapshot of a single file. We will study the influence of two factors against the space efficiency. The first factor is the ratio of file size against block size. The second factor is the proportion of ``truncated section'' in the file. A ``truncated section'' referes to those section that are not referring to a whole block. For example, the third section in \fref{fig:rsync} or the second and third section in \fref{fig:file_and_section} are all truncated sections.
 
-    We used the following steps to estimate the storage space occupied by a snapshot (all random numbers follow a uniform distribution):
+    We follow the steps below to estimate the storage space occupied by a snapshot (all random numbers follow a uniform distribution, size of space calculated by adding up size of all fields in all newly created node):
 
 \begin{enumerate}
 
