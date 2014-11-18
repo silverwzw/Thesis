@@ -46,7 +46,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
 
 \section {Efficiency of Snapshot and Deduplication}
 
-    This section will focus on the space efficiency of the snapshot system. We are going to measure the space efficiency of the snapshot system by estimating the average space cost of a snapshot of a single file. We will study the influence of two factors against the space efficiency. The first factor is the ratio of file size against block size. The second factor is the proportion of ``truncated sections'' in the file. ``truncated sections'' refers to those sections that are not referring to a whole block. For example, the third section in \fref{fig:rsync} or the second and third section in \fref{fig:file_and_section} are all truncated sections.
+    This section will focus on the space efficiency of the snapshot system. We are going to measure the space efficiency of the snapshot system by estimating the average space cost of a snapshot of a single file. We will study the influence of two factors against the space efficiency. The first factor is the ratio of file size against block size. The second factor is the proportion of ``truncated sections'' in the file. ``Truncated sections'' refers to those sections that are not referring to a whole block. For example, the third section in \fref{fig:rsync} or the second and third section in \fref{fig:file_and_section} are all truncated sections.
 
     We follow the steps below to estimate the storage space occupied by a snapshot (all random numbers follow a uniform distribution, size of space calculated by adding up sizes of all fields in all newly created node):
 
@@ -58,7 +58,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
 
 	\item Fill the file with sections and let a certain proportion ($P$) of the sections be truncated.
 
-	\item Take a snaphot of the file and make two side branches.
+	\item Take a snapshot of the file and make two side branches.
 	
 	\item Switch to side branch 1, insert random number of bytes into the file at random offset.
 
@@ -76,7 +76,7 @@ NFS \tnote{2,3} & remote & 45 & 26 & 24 & 25 & 36 \\
 
     The first row in \tref{tab:sample_result} represents an experiment on a Kabi File System initialized with 128-byte block size. The target file is a 12,608-byte file where 3\% of all sections are truncated. The second row is for a file 10 times larger. For the first experiment, the result shows that on average it takes a classic copy-on-write snapshot system 3,288 bytes to take a snapshot after an overwrite operation. It takes 103 bytes more for a Kabi File System to take a snapshot under the same condition. When it comes to insertion, on average it only takes the Kabi File System 3,256 bytes to take a snapshot after an insertion while it costs almost 2 times more space for a classic copy-on-write snapshot system to do so. In order to compare data between first and second experiment, we will use normalized data instead of absolute value in all tables here after. The normalization is based on the file size.
 
-    This result is not difficult to explain. Because there is not much duplicated data in the overwrite scenario, SHA hashes and rolling checksums become overheads. This makes the performance of the Kabi File System slightly less than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach cannot detect and make use of these duplicated data. So the Kabi File System has a better performance when it comes to insertion. The Kabi File System is optimized for efficient insertation. The test shows that it does perform better than classic copy-and-write strategy.
+    This result is not difficult to explain. Because there is not much duplicated data in the overwrite scenario, SHA hashes and rolling checksums become overheads. This makes the performance of the Kabi File System slightly less than the classic approach. But in the insertion scenario, lots of duplicated data can be found. The rsync algorithm is able to find the duplications to improve the efficiency. On the contrary, the classic approach cannot detect and make use of these duplicated data. So the Kabi File System has a better performance when it comes to insertion. The Kabi File System is optimized for efficient insertion. The test shows that it does perform better than classic copy-and-write strategy.
 
 \begin{table}[t]
 \begin{center}
