@@ -13,7 +13,7 @@ $(NAME).pdf : $(NAME).tex $(NAME).bib front.tex $(CHAPTERS) ncsuthesis.cls optio
 clean :
 	rm -f $(AUX) $(INTERMEDIATES) $(NAME).pdf
 
-view :
+view : $(NAME).pdf
 	evince $(NAME).pdf &
 
 edit:

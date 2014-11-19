@@ -486,11 +486,19 @@
 \renewcommand{\cftfigpresnum}{Figure }
 \newcommand{\thesislistoffigures}{%
     \singlespacing%
-    \setlength{\cftbeforeloftitleskip}{-\baselineskip}
+
+%    \setlength{\cftbeforeloftitleskip}{-\baselineskip}
+%    \setlength{\ncsu@leading}{\baselineskip-\ncsu@capitalheight}%
+%    \setlength{\cftafterloftitleskip}%
+%              {\ncsu@afterschapsep-\cftbeforechapskip-\ncsu@leading}%
+
+    \setlength{\cftbeforeloftitleskip}{\baselineskip}
     \setlength{\ncsu@leading}{\baselineskip-\ncsu@capitalheight}%
     \setlength{\cftafterloftitleskip}%
               {\ncsu@afterschapsep-\cftbeforechapskip-\ncsu@leading}%
+	\hspace{-0.47in}\begin{minipage}{\textwidth}%
     \listoffigures%
+	\end{minipage}%
     \clearpage%
     \ncsu@defaultspacing%
 }
@@ -506,7 +514,9 @@
     \setlength{\ncsu@leading}{\baselineskip-\ncsu@capitalheight}%
     \setlength{\cftafterlottitleskip}%
               {\ncsu@afterschapsep-\cftbeforechapskip-\ncsu@leading}%
+	\hspace{-0.47in}\begin{minipage}{\textwidth}%
     \listoftables%
+	\end{minipage}%
     \clearpage%
     \ncsu@defaultspacing%
 }
