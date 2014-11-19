@@ -17,6 +17,7 @@
 
 \begin{table}[t]
 \begin{center}
+\caption{Primary Data Structures}
 \begin{tabular}{ll}
 \toprule
 Data structures & Remark\\
@@ -28,7 +29,6 @@ Snapshot Node & Stores metadata of a snapshot\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Primary Data Structures}
 \label{tab:data_struct}
 \end{table}
 
@@ -68,6 +68,7 @@ Snapshot Node & Stores metadata of a snapshot\\
 
 \begin{table}[t]
 \begin{center}
+\caption{Fields in Block Node}
 \begin{tabular}{ll}
 \toprule
 field & remark\\
@@ -77,7 +78,6 @@ data & the block data\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Fields in Block Node}
 \label{tab:block_fields}
 \end{table}
 
@@ -95,6 +95,7 @@ data & the block data\\
 
 \begin{table}[t]
 \begin{center}
+\caption{Fields in File Node}
 \begin{tabular}{ll}
 \toprule
 field & remark\\
@@ -108,7 +109,6 @@ modified & timestamp of last modification\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Fields in File Node}
 \label{tab:file_fields}
 \end{table}
 
@@ -123,6 +123,7 @@ modified & timestamp of last modification\\
 
 \begin{table}[t]
 \begin{center}
+\caption{Fields in Section Object}
 \begin{tabular}{ll}
 \toprule
 field & remark\\
@@ -134,7 +135,6 @@ offset & the offset of last byte in this section\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Fields in Section Object}
 \label{tab:section_fields}
 \end{table}
 
@@ -146,6 +146,7 @@ offset & the offset of last byte in this section\\
 
 \begin{table}[t]
 \begin{center}
+\caption{Fields in Directory Node}
 \begin{tabular}{ll}
 \toprule
 field & remark\\
@@ -158,12 +159,12 @@ modified & timestamp for last modification\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Fields in Directory Node}
 \label{tab:dir_fields}
 \end{table}
 
 \begin{table}[t]
 \begin{center}
+\caption{Fields in Subnode Object}
 \begin{tabular}{ll}
 \toprule
 field & remark\\
@@ -173,7 +174,6 @@ ID & ID of the file or subdirectory\\
 \bottomrule
 \end{tabular}
 \end{center}
-\caption{Fields in Subnode Object}
 \label{tab:subnode_fields}
 \end{table}
 
@@ -230,14 +230,14 @@ ID & ID of the file or subdirectory\\
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.4\textwidth]{Chapter-3/figs/fig27.png}
-\caption{Consistency - within a snapshot}
+\caption{Consistency - Within a Snapshot}
 \label{fig:consist1}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.4\textwidth]{Chapter-3/figs/fig28.png}
-\caption{Consistency - cross snapshots}
+\caption{Consistency - Across Snapshots}
 \label{fig:consist2}
 \end{figure}
 

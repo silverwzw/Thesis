@@ -481,7 +481,7 @@
 \renewcommand{\cfttoctitlefont}{\hfill\ncsu@headingformat}
 \renewcommand{\cftaftertoctitle}{\hfill}
 
-\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listfigurename}{LIST OF FIGURES}
 \settowidth{\cftfignumwidth}{Figure 00.00}
 \renewcommand{\cftfigpresnum}{Figure }
 \newcommand{\thesislistoffigures}{%
@@ -497,7 +497,7 @@
 \renewcommand{\cftloftitlefont}{\hfill\ncsu@headingformat}
 \renewcommand{\cftafterloftitle}{\hfill}
 
-\renewcommand{\listtablename}{List of Tables}
+\renewcommand{\listtablename}{LIST OF TABLES}
 \settowidth{\cfttabnumwidth}{Table 00.00}
 \renewcommand{\cfttabpresnum}{Table }
 \newcommand{\thesislistoftables}{%
